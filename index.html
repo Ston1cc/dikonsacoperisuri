@@ -1,0 +1,787 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Configurator Acoperiș 3D | DikonSa Coperișuri</title>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Segoe UI', system-ui, sans-serif; background: #f3ece3; color: #1c1c1c; min-height: 100vh; }
+
+    .site-header { background:#fff; border-bottom:1px solid #e8e0d6; padding:14px 28px; display:flex; align-items:center; gap:10px; }
+    .site-header .logo { font-size:18px; font-weight:800; }
+    .site-header .logo span { color:#e8621a; }
+
+    .top-prose { text-align:center; padding:36px 24px 16px; }
+    .top-prose h2 { font-size:clamp(20px,2.5vw,28px); font-weight:800; line-height:1.3; max-width:560px; margin:0 auto 24px; }
+    .top-prose h2 em { color:#e8621a; font-style:normal; }
+
+    .feature-strip { display:flex; gap:12px; justify-content:center; flex-wrap:wrap; max-width:1100px; margin:0 auto 24px; padding:0 24px; }
+    .feat-card { background:#fff; border-radius:12px; padding:14px 18px; flex:1; min-width:180px; max-width:320px; box-shadow:0 1px 4px rgba(0,0,0,.07); }
+    .feat-card h4 { font-size:13px; font-weight:700; margin-bottom:5px; }
+    .feat-card p  { font-size:12px; color:#666; line-height:1.45; }
+
+    .configurator { display:flex; gap:18px; padding:0 24px 48px; max-width:1280px; margin:0 auto; align-items:flex-start; }
+
+    /* Viewer */
+    .viewer-panel { flex:1; background:#fff; border-radius:16px; overflow:hidden; box-shadow:0 2px 10px rgba(0,0,0,.08); position:sticky; top:18px; }
+    .viewer-badges { display:flex; gap:8px; padding:10px 14px; border-bottom:1px solid #f0e9df; flex-wrap:wrap; }
+    .badge { display:flex; align-items:center; gap:5px; padding:5px 11px; border-radius:20px; border:1px solid #e5ddd4; font-size:12px; color:#555; background:#faf6f2; }
+    #viewer-wrap { width:100%; height:430px; position:relative; overflow:hidden; background:#f0e8de; }
+    #roof-canvas { display:block; position:absolute; top:0; left:0; width:100%; height:100%; cursor:grab; }
+    #roof-canvas:active { cursor:grabbing; }
+    .viewer-note { padding:10px 14px; background:#faf6f2; font-size:12px; color:#777; border-top:1px solid #f0e9df; line-height:1.5; }
+
+    /* Config */
+    .config-panel { width:420px; flex-shrink:0; display:flex; flex-direction:column; gap:8px; }
+    .step { background:#fff; border-radius:12px; overflow:hidden; box-shadow:0 1px 4px rgba(0,0,0,.06); }
+    .step-header { display:flex; align-items:center; justify-content:space-between; padding:14px 16px; cursor:pointer; user-select:none; transition:background .1s; }
+    .step-header:hover { background:#faf6f2; }
+    .step-left { display:flex; align-items:center; gap:10px; }
+    .step-num { width:26px; height:26px; border-radius:50%; background:#e8621a; color:#fff; font-size:13px; font-weight:700; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+    .step-text h3 { font-size:14px; font-weight:700; }
+    .step-text p  { font-size:11px; color:#999; margin-top:1px; }
+    .step-toggle { width:26px; height:26px; border-radius:50%; border:1px solid #ddd; display:flex; align-items:center; justify-content:center; font-size:13px; color:#666; transition:transform .2s; }
+    .step.open .step-toggle { transform:rotate(180deg); }
+    .step-body { padding:0 16px 14px; display:none; }
+    .step.open .step-body { display:block; }
+
+    /* Shape */
+    .shape-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+    .shape-opt { border:2px solid #e5ddd4; border-radius:10px; padding:10px; cursor:pointer; display:flex; align-items:flex-start; gap:8px; transition:all .15s; }
+    .shape-opt:hover { border-color:#e8621a; background:#fff9f6; }
+    .shape-opt.active { border-color:#e8621a; background:#fff5f0; }
+    .shape-ico { width:34px; height:34px; background:#fff0e8; border-radius:7px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+    .shape-ico svg { width:20px; height:20px; }
+    .shape-text h5 { font-size:12px; font-weight:700; }
+    .shape-text p  { font-size:10px; color:#999; line-height:1.3; margin-top:2px; }
+
+    /* ── Vol card grid ── */
+    .vol-head { display:flex; align-items:center; justify-content:flex-end; margin-bottom:10px; }
+    .preset-btn { font-size:12px; font-weight:600; color:#e8621a; border:1px solid #fcddc9; background:#fff5f0; border-radius:8px; padding:5px 10px; cursor:pointer; transition:background .15s; }
+    .preset-btn:hover { background:#ffe8d8; }
+    .vol-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+    .vol-card { background:#f9f5f1; border-radius:10px; padding:12px 12px 10px; border:1px solid #ede5da; }
+    .vol-card.full { grid-column:1 / -1; }
+    .vol-card-top { display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:8px; gap:6px; }
+    .vol-card-label { font-size:12px; font-weight:700; line-height:1.3; flex:1; }
+    .vol-card-val { font-size:14px; font-weight:800; color:#e8621a; white-space:nowrap; }
+    .vol-card-val em { font-size:10px; font-style:normal; font-weight:600; color:#e8621a; }
+    input[type=range] { width:100%; -webkit-appearance:none; height:4px; border-radius:2px; background:#ddd8d0; outline:none; }
+    input[type=range]::-webkit-slider-thumb { -webkit-appearance:none; width:16px; height:16px; border-radius:50%; background:#e8621a; cursor:pointer; box-shadow:0 1px 4px rgba(0,0,0,.2); }
+    .vol-card-desc { font-size:10px; color:#999; line-height:1.35; margin-top:7px; }
+    .shape-note { font-size:11px; color:#777; line-height:1.5; margin-top:8px; padding:8px 10px; background:#f5f0ea; border-radius:8px; border-left:3px solid #e8621a; }
+
+    /* Mat */
+    .mat-grid { display:flex; flex-direction:column; gap:7px; }
+    .mat-opt { border:2px solid #e5ddd4; border-radius:10px; padding:10px 12px; cursor:pointer; display:flex; align-items:center; gap:12px; transition:all .15s; }
+    .mat-opt:hover { border-color:#e8621a; background:#fff9f6; }
+    .mat-opt.active { border-color:#e8621a; background:#fff5f0; }
+    .mat-preview { width:44px; height:34px; border-radius:6px; flex-shrink:0; overflow:hidden; }
+    .mat-preview canvas { width:100%; height:100%; display:block; }
+    .mat-info h5 { font-size:13px; font-weight:700; }
+    .mat-info p  { font-size:11px; color:#888; }
+
+    /* Drain */
+    .toggle-row { display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; }
+    .toggle-row label { font-size:13px; font-weight:500; }
+    .tog { width:38px; height:21px; border-radius:11px; background:#ccc; position:relative; cursor:pointer; transition:background .2s; }
+    .tog.on { background:#e8621a; }
+    .tog-thumb { width:17px; height:17px; background:#fff; border-radius:50%; position:absolute; top:2px; left:2px; transition:left .2s; box-shadow:0 1px 3px rgba(0,0,0,.2); }
+    .tog.on .tog-thumb { left:19px; }
+    .color-row { display:flex; gap:7px; flex-wrap:wrap; margin-top:4px; }
+    .cswatch { width:26px; height:26px; border-radius:50%; cursor:pointer; border:2px solid transparent; transition:border-color .15s,transform .1s; }
+    .cswatch.active, .cswatch:hover { border-color:#e8621a; transform:scale(1.15); }
+
+    /* Estimate */
+    .estimate { background:#fff5f0; border:1px solid #fcddc9; border-radius:10px; padding:12px 14px; margin-bottom:10px; }
+    .estimate .elabel { font-size:11px; color:#999; }
+    .estimate .eprice { font-size:24px; font-weight:800; color:#e8621a; line-height:1.1; }
+    .estimate .enote  { font-size:10px; color:#bbb; margin-top:2px; }
+    .cta-btn { width:100%; padding:14px; background:#e8621a; color:#fff; border:none; border-radius:10px; font-size:15px; font-weight:700; cursor:pointer; transition:background .15s; }
+    .cta-btn:hover { background:#c95415; }
+
+    /* Shingle selector */
+    .line-tabs { display:flex; gap:5px; flex-wrap:wrap; margin-bottom:10px; }
+    .line-tab { padding:4px 11px; border-radius:16px; border:1px solid #ddd; background:#fff; font-size:11px; font-weight:600; cursor:pointer; color:#666; transition:all .15s; white-space:nowrap; }
+    .line-tab.active { background:#e8621a; border-color:#e8621a; color:#fff; }
+    .shingle-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:6px; }
+    .shingle-item { border-radius:8px; overflow:hidden; cursor:pointer; border:2px solid transparent; transition:border-color .15s; }
+    .shingle-item.active { border-color:#e8621a; }
+    .shingle-item:hover { border-color:#e8621a99; }
+    .shingle-thumb { width:100%; aspect-ratio:16/9; object-fit:cover; display:block; background:#e8e0d6; }
+    .shingle-name { font-size:9px; font-weight:600; padding:3px 5px; background:#fff; text-align:center; line-height:1.3; color:#444; }
+
+    @media (max-width:900px) {
+      .configurator { flex-direction:column; }
+      .config-panel { width:100%; }
+      .viewer-panel { position:static; }
+    }
+  </style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="logo">Dikon<span>Sa</span> <span style="font-weight:400;color:#888">Coperișuri</span></div>
+</header>
+
+<div class="top-prose">
+  <h2>Află cât te costă acoperișul,<br>la doar <em>câteva click-uri distanță.</em></h2>
+</div>
+
+<div class="feature-strip">
+  <div class="feat-card"><h4>4 forme comparabile</h4><p>Casă simplă în 2 sau 4 pante, plus formele L și T, în același configurator.</p></div>
+  <div class="feat-card"><h4>13 culori reale</h4><p>Colecțiile Duration, Designer, Flex și Oakridge — texturi fotografice reale aplicate direct pe model.</p></div>
+  <div class="feat-card"><h4>Sistem de scurgere inclus</h4><p>Poți activa rapid sistemul de scurgere, iar configurația ajunge direct în cererea ta.</p></div>
+</div>
+
+<div class="configurator">
+
+  <div class="viewer-panel">
+    <div class="viewer-badges">
+      <span class="badge">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#e8621a" stroke-width="2.5"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        Model interactiv
+      </span>
+      <span class="badge">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#e8621a" stroke-width="2.5"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+        Volumetrie reglabilă
+      </span>
+      <span class="badge">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#e8621a" stroke-width="2.5"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+        Scurgere și efecte
+      </span>
+    </div>
+    <div id="viewer-wrap"><canvas id="roof-canvas"></canvas></div>
+    <div class="viewer-note">Modelul este orientativ și te ajută să compari forma casei, materialul și estimarea generală înainte de oferta finală.</div>
+  </div>
+
+  <div class="config-panel">
+
+    <!-- Step 1 -->
+    <div class="step open" id="step1">
+      <div class="step-header" onclick="toggleStep(1)">
+        <div class="step-left">
+          <div class="step-num">1</div>
+          <div class="step-text"><h3>Forma Acoperișului</h3><p id="sub1">Casă simplă - 2 pante</p></div>
+        </div>
+        <div class="step-toggle">▾</div>
+      </div>
+      <div class="step-body">
+        <div class="shape-grid">
+          <div class="shape-opt active" onclick="selectShape('2pante',this)">
+            <div class="shape-ico"><svg viewBox="0 0 24 24" fill="none" stroke="#e8621a" stroke-width="2"><polygon points="2,18 12,5 22,18"/><line x1="2" y1="18" x2="22" y2="18"/></svg></div>
+            <div class="shape-text"><h5>Casă simplă - 2 pante</h5><p>Volum dreptunghiular de referință, cu coamă simplă</p></div>
+          </div>
+          <div class="shape-opt" onclick="selectShape('4pante',this)">
+            <div class="shape-ico"><svg viewBox="0 0 24 24" fill="none" stroke="#e8621a" stroke-width="2"><polygon points="12,4 22,18 2,18"/><line x1="7" y1="18" x2="12" y2="9"/><line x1="17" y1="18" x2="12" y2="9"/></svg></div>
+            <div class="shape-text"><h5>Casă simplă - 4 pante</h5><p>Acoperiș compact, cu 4 ape și volum echilibrat</p></div>
+          </div>
+          <div class="shape-opt" onclick="selectShape('L',this)">
+            <div class="shape-ico"><svg viewBox="0 0 24 24" fill="none" stroke="#e8621a" stroke-width="2"><path d="M3 3 L3 21 L13 21 L13 13 L21 13 L21 3 Z"/></svg></div>
+            <div class="shape-text"><h5>Casă în L</h5><p>Formă compusă, setată automat pe 4 pante</p></div>
+          </div>
+          <div class="shape-opt" onclick="selectShape('T',this)">
+            <div class="shape-ico"><svg viewBox="0 0 24 24" fill="none" stroke="#e8621a" stroke-width="2"><path d="M2 4 L22 4 L22 11 L14 11 L14 20 L10 20 L10 11 L2 11 Z"/></svg></div>
+            <div class="shape-text"><h5>Casă în T</h5><p>Formă compusă, setată automat pe 4 pante</p></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 2 — Volumetrie card grid -->
+    <div class="step" id="step2">
+      <div class="step-header" onclick="toggleStep(2)">
+        <div class="step-left">
+          <div class="step-num">2</div>
+          <div class="step-text"><h3>Ajustează Volumetria</h3><p id="sub2">8.6 × 5.0 m · streașină 0.5 m</p></div>
+        </div>
+        <div class="step-toggle">›</div>
+      </div>
+      <div class="step-body">
+        <div class="vol-head">
+          <button class="preset-btn" onclick="resetPreset()">↩ Revino la preset</button>
+        </div>
+        <div class="vol-grid">
+          <!-- Main body -->
+          <div class="vol-card">
+            <div class="vol-card-top">
+              <span class="vol-card-label">Lățime corp<br>principal</span>
+              <span class="vol-card-val" id="vMainW">8.6 <em>m</em></span>
+            </div>
+            <input type="range" id="slMainW" min="4" max="16" step="0.1" value="8.6" oninput="onVol()">
+            <p class="vol-card-desc">Controlează corpul principal pe axa frontală.</p>
+          </div>
+          <div class="vol-card">
+            <div class="vol-card-top">
+              <span class="vol-card-label">Adâncime corp<br>principal</span>
+              <span class="vol-card-val" id="vMainD">5.0 <em>m</em></span>
+            </div>
+            <input type="range" id="slMainD" min="4" max="20" step="0.1" value="5" oninput="onVol()">
+            <p class="vol-card-desc">Definește cât de compact sau alungit este volumul principal.</p>
+          </div>
+          <!-- Wing — hidden for 2/4 pante -->
+          <div class="vol-card" id="wingWCard" style="display:none">
+            <div class="vol-card-top">
+              <span class="vol-card-label">Lățime aripă<br>secundară</span>
+              <span class="vol-card-val" id="vWingW">4.8 <em>m</em></span>
+            </div>
+            <input type="range" id="slWingW" min="2" max="12" step="0.1" value="4.8" oninput="onVol()">
+            <p class="vol-card-desc">Disponibil doar pentru formele în L și T.</p>
+          </div>
+          <div class="vol-card" id="wingDCard" style="display:none">
+            <div class="vol-card-top">
+              <span class="vol-card-label">Lungime aripă<br>secundară</span>
+              <span class="vol-card-val" id="vWingD">9.3 <em>m</em></span>
+            </div>
+            <input type="range" id="slWingD" min="2" max="18" step="0.1" value="9.3" oninput="onVol()">
+            <p class="vol-card-desc">Controlează cât de mult se prelungește volumul secundar.</p>
+          </div>
+          <!-- Streașină — full width -->
+          <div class="vol-card full">
+            <div class="vol-card-top">
+              <span class="vol-card-label">Streașina<br>acoperișului</span>
+              <span class="vol-card-val" id="vOverhang">0.5 <em>m</em></span>
+            </div>
+            <input type="range" id="slOverhang" min="0" max="1.5" step="0.05" value="0.5" oninput="onVol()">
+            <p class="vol-card-desc">Controlează cât depășește acoperișul peretele exterior.</p>
+          </div>
+        </div>
+        <div id="shapeNote" class="shape-note" style="display:none">
+          Forma în L unește corpul principal cu o aripă laterală. Aici apare o dolie și o intersecție de acoperiș care trebuie urmărită atent la montaj.
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 3 -->
+    <div class="step" id="step3">
+      <div class="step-header" onclick="toggleStep(3)">
+        <div class="step-left">
+          <div class="step-num">3</div>
+          <div class="step-text"><h3>Material &amp; Culoare</h3><p id="sub3">Duration · Driftwood</p></div>
+        </div>
+        <div class="step-toggle">›</div>
+      </div>
+      <div class="step-body">
+        <div class="line-tabs" id="lineTabs"></div>
+        <div class="shingle-grid" id="shingleGrid"></div>
+      </div>
+    </div>
+
+    <!-- Step 4 -->
+    <div class="step" id="step4">
+      <div class="step-header" onclick="toggleStep(4)">
+        <div class="step-left">
+          <div class="step-num">4</div>
+          <div class="step-text"><h3>Sistem de Scurgere</h3><p id="sub4">Dezactivat</p></div>
+        </div>
+        <div class="step-toggle">›</div>
+      </div>
+      <div class="step-body">
+        <div class="toggle-row">
+          <label>Activează sistem de scurgere</label>
+          <div class="tog" id="drainToggle" onclick="toggleDrain()"><div class="tog-thumb"></div></div>
+        </div>
+        <div id="drainColors" style="display:none">
+          <p style="font-size:12px;color:#888;margin-bottom:6px;">Culoare burlane &amp; jgheaburi</p>
+          <div class="color-row">
+            <div class="cswatch active" style="background:#5a5a5a" onclick="selectDrainColor('#5a5a5a',this)"></div>
+            <div class="cswatch" style="background:#8b7355" onclick="selectDrainColor('#8b7355',this)"></div>
+            <div class="cswatch" style="background:#c0c0c0" onclick="selectDrainColor('#c0c0c0',this)"></div>
+            <div class="cswatch" style="background:#8b0000" onclick="selectDrainColor('#8b0000',this)"></div>
+            <div class="cswatch" style="background:#1a3a1a" onclick="selectDrainColor('#1a3a1a',this)"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 5 -->
+    <div class="step" id="step5">
+      <div class="step-header" onclick="toggleStep(5)">
+        <div class="step-left">
+          <div class="step-num">5</div>
+          <div class="step-text"><h3>Trimite Configurația</h3><p>Primești oferta în 24h</p></div>
+        </div>
+        <div class="step-toggle">›</div>
+      </div>
+      <div class="step-body">
+        <div class="estimate">
+          <div class="elabel">Estimare orientativă</div>
+          <div class="eprice" id="estimatePrice">— lei</div>
+          <div class="enote">Prețul final depinde de acces, pantă reală și cantitate exactă de material</div>
+        </div>
+        <button class="cta-btn" onclick="sendConfig()">Solicită oferta gratuită →</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════
+//  STATE
+// ═══════════════════════════════════════════
+var PRESET = { mainW:8.6, mainD:5.0, wingW:4.8, wingD:9.3, overhang:0.5 };
+var S = {
+  shape: '2pante',
+  mainW: 8.6, mainD: 5.0,
+  wingW: 4.8, wingD: 9.3,
+  overhang: 0.5,
+  wallH: 3.0,
+  material: 'driftwood',
+  drainage: false, drainColor: '#5a5a5a'
+};
+
+// ═══════════════════════════════════════════
+//  SHINGLE CATALOGUE
+// ═══════════════════════════════════════════
+var SHINGLES = {
+  lines: [
+    { id: 'duration', label: 'Duration', items: [
+      { id: 'driftwood',        name: 'Driftwood',        file: 'trudefinition-duration-driftwood.jpg' },
+      { id: 'cool-sand-castle', name: 'Cool Sand Castle', file: 'trudefinition-duration-cool-sand-castle.jpg' },
+    ]},
+    { id: 'designer', label: 'Designer', items: [
+      { id: 'aged-copper',   name: 'Aged Copper',   file: 'trudefinition-duration-designer-aged-copper.jpg' },
+      { id: 'black-sable',   name: 'Black Sable',   file: 'trudefinition-duration-designer-black-sable.jpg' },
+      { id: 'bourbon',       name: 'Bourbon',       file: 'trudefinition-duration-designer-bourbon.jpg' },
+      { id: 'merlot',        name: 'Merlot',        file: 'trudefinition-duration-designer-merlot.jpg' },
+      { id: 'pacific-wave',  name: 'Pacific Wave',  file: 'trudefinition-duration-designer-pacific-wave.jpg' },
+      { id: 'sand-dune',     name: 'Sand Dune',     file: 'trudefinition-duration-designer-sand-dune.jpg' },
+      { id: 'sedona-canyon', name: 'Sedona Canyon', file: 'trudefinition-duration-designer-sedona-canyon.jpg' },
+      { id: 'storm-cloud',   name: 'Storm Cloud',   file: 'trudefinition-duration-designer-storm-cloud.jpg' },
+      { id: 'summer-harvest',name: 'Summer Harvest',file: 'trudefinition-duration-designer-summer-harvest.jpg' },
+    ]},
+    { id: 'flex', label: 'Duration Flex', items: [
+      { id: 'brownwood', name: 'Brownwood', file: 'trudefinition-duration-flex-brownwood.jpg' },
+    ]},
+    { id: 'oakridge', label: 'Oakridge', items: [
+      { id: 'aged-cedar', name: 'Aged Cedar', file: 'oakridge-aged-cedar.jpg' },
+    ]},
+  ]
+};
+var SHINGLES_MAP = {};
+SHINGLES.lines.forEach(function(line) {
+  line.items.forEach(function(item) { SHINGLES_MAP[item.id] = { file: item.file, line: line.label }; });
+});
+
+// ═══════════════════════════════════════════
+//  THREE.JS
+// ═══════════════════════════════════════════
+window.addEventListener('load', function () {
+
+  var wrap   = document.getElementById('viewer-wrap');
+  var canvas = document.getElementById('roof-canvas');
+
+  var renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true });
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  renderer.shadowMap.enabled = true;
+  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  renderer.toneMapping = THREE.ACESFilmicToneMapping;
+  renderer.toneMappingExposure = 1.05;
+
+  function sz() { return { w: wrap.clientWidth, h: wrap.clientHeight }; }
+  var s0 = sz();
+  renderer.setSize(s0.w, s0.h);
+
+  var scene = new THREE.Scene();
+  scene.background = new THREE.Color(0xeee6d8);
+  scene.fog = new THREE.Fog(0xeee6d8, 40, 90);
+
+  var camera = new THREE.PerspectiveCamera(40, s0.w / s0.h, 0.1, 200);
+
+  // Lights
+  scene.add(new THREE.HemisphereLight(0xfff0e0, 0x88aa66, 1.0));
+  var sun = new THREE.DirectionalLight(0xfff8f0, 2.2);
+  sun.position.set(14, 22, 10);
+  sun.castShadow = true;
+  sun.shadow.mapSize.set(2048, 2048);
+  Object.assign(sun.shadow.camera, { near:1, far:80, left:-26, right:26, top:26, bottom:-26 });
+  sun.shadow.bias = -0.001;
+  scene.add(sun);
+  var fill = new THREE.DirectionalLight(0xc8e0ff, 0.6);
+  fill.position.set(-12, 8, -12); scene.add(fill);
+
+  // Ground
+  var ground = new THREE.Mesh(
+    new THREE.PlaneGeometry(80, 80),
+    new THREE.MeshLambertMaterial({ color: 0xbad49a })
+  );
+  ground.rotation.x = -Math.PI / 2;
+  ground.receiveShadow = true;
+  scene.add(ground);
+
+  // ── Orbit ──────────────────────────────────────────────
+  var orb = { theta: -0.7, phi: 1.05, radius: 24, tx:0, ty:2.5, tz:0 };
+  function orbCam() {
+    camera.position.set(
+      orb.tx + orb.radius * Math.sin(orb.phi) * Math.sin(orb.theta),
+      orb.ty + orb.radius * Math.cos(orb.phi),
+      orb.tz + orb.radius * Math.sin(orb.phi) * Math.cos(orb.theta)
+    );
+    camera.lookAt(orb.tx, orb.ty, orb.tz);
+  }
+  orbCam();
+
+  var drag=false, lx=0, ly=0;
+  canvas.addEventListener('mousedown', function(e){ drag=true; lx=e.clientX; ly=e.clientY; });
+  window.addEventListener('mouseup',   function(){ drag=false; });
+  canvas.addEventListener('mousemove', function(e){
+    if (!drag) return;
+    orb.theta -= (e.clientX-lx)*0.008;
+    orb.phi = Math.max(0.15, Math.min(1.45, orb.phi-(e.clientY-ly)*0.008));
+    lx=e.clientX; ly=e.clientY; orbCam();
+  });
+  canvas.addEventListener('wheel', function(e){
+    orb.radius = Math.max(6, Math.min(50, orb.radius+e.deltaY*0.04));
+    orbCam(); e.preventDefault();
+  }, {passive:false});
+
+  window.addEventListener('resize', function(){
+    var s=sz(); renderer.setSize(s.w,s.h); camera.aspect=s.w/s.h; camera.updateProjectionMatrix();
+  });
+
+  // ── Texture cache ──────────────────────────────────────
+  var TEXS = {};
+  var TL = new THREE.TextureLoader();
+  window._TEXS = TEXS;
+  window._TL   = TL;
+
+  // ── Geometry builder ───────────────────────────────────
+  function GeoBuilder() { this.p=[]; this.n=[]; this.u=[]; this.i=[]; }
+  GeoBuilder.prototype.norm = function(a,b,c) {
+    var ax=b[0]-a[0],ay=b[1]-a[1],az=b[2]-a[2];
+    var bx=c[0]-a[0],by=c[1]-a[1],bz=c[2]-a[2];
+    var nx=ay*bz-az*by, ny=az*bx-ax*bz, nz=ax*by-ay*bx;
+    var l=Math.sqrt(nx*nx+ny*ny+nz*nz)||1;
+    return [nx/l,ny/l,nz/l];
+  };
+  GeoBuilder.prototype.quad = function(p0,p1,p2,p3,uMax,vMax) {
+    var n=this.norm(p0,p1,p3), b=this.p.length/3;
+    [p0,p1,p2,p3].forEach(function(p){this.p.push(p[0],p[1],p[2]);},this);
+    this.u.push(0,0, uMax,0, uMax,vMax, 0,vMax);
+    for(var i=0;i<4;i++) this.n.push(n[0],n[1],n[2]);
+    this.i.push(b,b+1,b+2, b,b+2,b+3);
+  };
+  GeoBuilder.prototype.tri = function(p0,p1,p2,uv0,uv1,uv2) {
+    var n=this.norm(p0,p1,p2), b=this.p.length/3;
+    [p0,p1,p2].forEach(function(p){this.p.push(p[0],p[1],p[2]);},this);
+    [uv0,uv1,uv2].forEach(function(u){this.u.push(u[0],u[1]);},this);
+    for(var i=0;i<3;i++) this.n.push(n[0],n[1],n[2]);
+    this.i.push(b,b+1,b+2);
+  };
+  GeoBuilder.prototype.build = function() {
+    var g=new THREE.BufferGeometry();
+    g.setAttribute('position',new THREE.Float32BufferAttribute(this.p,3));
+    g.setAttribute('normal',  new THREE.Float32BufferAttribute(this.n,3));
+    g.setAttribute('uv',      new THREE.Float32BufferAttribute(this.u,2));
+    g.setIndex(this.i);
+    return g;
+  };
+
+  // UV helpers: 2.0m per texture width, 1.5m per texture height
+  function uvU(d) { return d / 2.0; }
+  function uvV(s) { return s / 1.5; }
+
+  function gableGeo(W,D,wH,rH,ov) {
+    var gb=new GeoBuilder(), hw=W/2+ov, hd=D/2+ov, ry=wH, py=wH+rH;
+    var sL=Math.sqrt(hw*hw+rH*rH), uS=uvU(hd*2), vS=uvV(sL);
+    gb.quad([-hw,ry,-hd],[-hw,ry,hd],[0,py,hd],[0,py,-hd],uS,vS);
+    gb.quad([hw,ry,hd],[hw,ry,-hd],[0,py,-hd],[0,py,hd],uS,vS);
+    gb.tri([hw,ry,-hd],[-hw,ry,-hd],[0,py,-hd],[0,0],[1,0],[0.5,1]);
+    gb.tri([-hw,ry,hd],[hw,ry,hd],[0,py,hd],[0,0],[1,0],[0.5,1]);
+    return gb.build();
+  }
+
+  function hipGeo(W,D,wH,rH,ov) {
+    var gb=new GeoBuilder(), hw=W/2+ov, hd=D/2+ov, ry=wH, py=wH+rH;
+    var rz=Math.max(0.2,hd-hw), uS=uvU(hd*2), vS=uvV(Math.sqrt(hw*hw+rH*rH));
+    gb.quad([-hw,ry,-hd],[-hw,ry,hd],[0,py,rz],[0,py,-rz],uS,vS);
+    gb.quad([hw,ry,hd],[hw,ry,-hd],[0,py,-rz],[0,py,rz],uS,vS);
+    gb.tri([hw,ry,-hd],[-hw,ry,-hd],[0,py,-rz],[0,0],[1,0],[0.5,1]);
+    gb.tri([-hw,ry,hd],[hw,ry,hd],[0,py,rz],[0,0],[1,0],[0.5,1]);
+    return gb.build();
+  }
+
+  // ── Materials ──────────────────────────────────────────
+  function roofMat() {
+    var tex = TEXS[S.material] || null;
+    return new THREE.MeshStandardMaterial({
+      map: tex,
+      color: tex ? 0xffffff : 0x4a3828,
+      roughness: 0.88,
+      metalness: 0.0,
+      side: THREE.DoubleSide
+    });
+  }
+
+  function wallMat() {
+    return new THREE.MeshStandardMaterial({ color:0xf0ece4, roughness:0.7, metalness:0 });
+  }
+
+  // ── House ──────────────────────────────────────────────
+  var houseGroup = null;
+
+  function disposeGroup(g) {
+    g.traverse(function(o){
+      if (o.geometry) o.geometry.dispose();
+      if (o.material) { var m=o.material; if(Array.isArray(m)) m.forEach(function(x){x.dispose();}); else m.dispose(); }
+    });
+  }
+
+  function addBox(bw,bd,px,pz,group) {
+    var wH=S.wallH;
+    var m=new THREE.Mesh(new THREE.BoxGeometry(bw,wH,bd), wallMat());
+    m.position.set(px,wH/2,pz); m.castShadow=m.receiveShadow=true; group.add(m);
+  }
+
+  function addRoof(geo,px,pz,group) {
+    var m=new THREE.Mesh(geo, roofMat());
+    m.position.set(px,0,pz); m.castShadow=m.receiveShadow=true; group.add(m);
+  }
+
+  function addGutters(bw,bd,px,pz,group) {
+    if (!S.drainage) return;
+    var gm=new THREE.MeshLambertMaterial({color:new THREE.Color(S.drainColor)});
+    var gr=0.065, ey=S.wallH-0.06, hw=bw/2+S.overhang-0.06, hd=bd/2+S.overhang-0.06;
+    [-hd+pz, hd+pz].forEach(function(z){
+      var m=new THREE.Mesh(new THREE.CylinderGeometry(gr,gr,bw+S.overhang*2,8),gm);
+      m.rotation.z=Math.PI/2; m.position.set(px,ey,z); group.add(m);
+    });
+    [[-hw,-hd],[hw,-hd],[-hw,hd],[hw,hd]].forEach(function(c){
+      var m=new THREE.Mesh(new THREE.CylinderGeometry(0.04,0.04,S.wallH+0.1,8),gm);
+      m.position.set(c[0]+px,(S.wallH+0.1)/2,c[1]+pz); group.add(m);
+    });
+  }
+
+  function ridgeH(W) { return W * 0.28; }
+
+  function buildHouse() {
+    if (houseGroup) { disposeGroup(houseGroup); scene.remove(houseGroup); }
+    houseGroup = new THREE.Group();
+    var mW=S.mainW, mD=S.mainD, wW=S.wingW, wD=S.wingD, ov=S.overhang, wH=S.wallH;
+
+    if (S.shape === '2pante') {
+      addBox(mW,mD,0,0,houseGroup);
+      addRoof(gableGeo(mW,mD,wH,ridgeH(mW),ov),0,0,houseGroup);
+      addGutters(mW,mD,0,0,houseGroup);
+
+    } else if (S.shape === '4pante') {
+      addBox(mW,mD,0,0,houseGroup);
+      addRoof(hipGeo(mW,mD,wH,ridgeH(mW),ov),0,0,houseGroup);
+      addGutters(mW,mD,0,0,houseGroup);
+
+    } else if (S.shape === 'L') {
+      var px1=-(wW/2), pz1=0;
+      var px2=(mW+wW)/2-(wW/2), pz2=(mD-wD)/2;
+      addBox(mW,mD,px1,pz1,houseGroup);
+      addBox(wW,wD,px2,pz2,houseGroup);
+      addRoof(hipGeo(mW,mD,wH,ridgeH(mW),ov),px1,pz1,houseGroup);
+      addRoof(hipGeo(wW,wD,wH,ridgeH(wW),ov),px2,pz2,houseGroup);
+      addGutters(mW,mD,px1,pz1,houseGroup);
+
+    } else if (S.shape === 'T') {
+      var px1=0, pz1=(wD/2);
+      var px2=0, pz2=-(mD/2);
+      addBox(mW,mD,px1,pz1,houseGroup);
+      addBox(wW,wD,px2,pz2,houseGroup);
+      addRoof(hipGeo(mW,mD,wH,ridgeH(mW),ov),px1,pz1,houseGroup);
+      addRoof(hipGeo(wW,wD,wH,ridgeH(wW),ov),px2,pz2,houseGroup);
+      addGutters(mW,mD,px1,pz1,houseGroup);
+    }
+
+    // Chimney
+    var cm=new THREE.Mesh(
+      new THREE.BoxGeometry(0.45,ridgeH(mW)*0.5+0.6,0.45),
+      new THREE.MeshStandardMaterial({color:0xbcaa8a,roughness:0.8,metalness:0})
+    );
+    cm.position.set(mW*0.22-0.2, wH+ridgeH(mW)*0.2, -mD*0.18);
+    cm.castShadow=true; houseGroup.add(cm);
+
+    var box=new THREE.Box3().setFromObject(houseGroup);
+    var ctr=box.getCenter(new THREE.Vector3());
+    houseGroup.position.x -= ctr.x; houseGroup.position.z -= ctr.z;
+    scene.add(houseGroup);
+
+    orb.ty = wH/2 + ridgeH(mW)/3;
+    orbCam();
+    updateEstimate();
+  }
+
+  function updateEstimate() {
+    var mW=S.mainW, mD=S.mainD, rH=ridgeH(mW);
+    var sL=Math.sqrt((mW/2)*(mW/2)+rH*rH);
+    var area = S.shape==='2pante' ? 2*sL*mD
+             : S.shape==='4pante' ? 2*sL*mD*0.88+2*(mW/2)*mD*0.28
+             : 2*sL*mD*1.35;
+    var lo=Math.round(area*95/100)*100;
+    var hi=Math.round(lo*1.45/100)*100;
+    document.getElementById('estimatePrice').textContent =
+      lo.toLocaleString('ro-RO')+' – '+hi.toLocaleString('ro-RO')+' lei';
+  }
+
+  (function animate(){ requestAnimationFrame(animate); renderer.render(scene,camera); })();
+
+  // Load initial texture, then build
+  TL.load('tex/trudefinition-duration-driftwood.jpg',
+    function(tex) { tex.wrapS = tex.wrapT = THREE.RepeatWrapping; TEXS['driftwood'] = tex; buildHouse(); },
+    undefined,
+    function()    { buildHouse(); }
+  );
+
+  window._rebuild = buildHouse;
+  window._scene   = scene;
+
+}); // end load
+
+// ═══════════════════════════════════════════
+//  UI
+// ═══════════════════════════════════════════
+function toggleStep(n) {
+  var el=document.getElementById('step'+n);
+  var wasOpen=el.classList.contains('open');
+  document.querySelectorAll('.step').forEach(function(s){
+    s.classList.remove('open');
+    var t=s.querySelector('.step-toggle'); if(t) t.textContent='›';
+  });
+  if (!wasOpen) {
+    el.classList.add('open');
+    var t=el.querySelector('.step-toggle'); if(t) t.textContent='▾';
+  }
+}
+
+function selectShape(shape, el) {
+  document.querySelectorAll('.shape-opt').forEach(function(e){e.classList.remove('active');});
+  el.classList.add('active');
+  S.shape = shape;
+  var L={'2pante':'Casă simplă - 2 pante','4pante':'Casă simplă - 4 pante','L':'Casă în L','T':'Casă în T'};
+  document.getElementById('sub1').textContent = L[shape]||shape;
+  var hasWing = (shape==='L' || shape==='T');
+  document.getElementById('wingWCard').style.display = hasWing ? '' : 'none';
+  document.getElementById('wingDCard').style.display = hasWing ? '' : 'none';
+  document.getElementById('shapeNote').style.display = hasWing ? '' : 'none';
+  if (hasWing) document.getElementById('shapeNote').textContent =
+    shape==='L'
+    ? 'Forma în L unește corpul principal cu o aripă laterală. Aici apare o dolie și o intersecție de acoperiș care trebuie urmărită atent la montaj.'
+    : 'Forma în T unește corpul principal cu o aripă centrală. Doliile și intersecțiile de pe ambele laturi trebuie calculate cu atenție.';
+  updateSub2();
+  if (window._rebuild) window._rebuild();
+}
+
+function updateSub2() {
+  var hasWing = (S.shape==='L'||S.shape==='T');
+  var t = S.mainW.toFixed(1)+' × '+S.mainD.toFixed(1)+' m';
+  if (hasWing) t += ' + aripa '+S.wingW.toFixed(1)+' × '+S.wingD.toFixed(1)+' m';
+  else t += ' · streașină '+S.overhang.toFixed(2)+' m';
+  document.getElementById('sub2').textContent = t;
+}
+
+function onVol() {
+  S.mainW    = parseFloat(document.getElementById('slMainW').value);
+  S.mainD    = parseFloat(document.getElementById('slMainD').value);
+  S.wingW    = parseFloat(document.getElementById('slWingW').value);
+  S.wingD    = parseFloat(document.getElementById('slWingD').value);
+  S.overhang = parseFloat(document.getElementById('slOverhang').value);
+  document.getElementById('vMainW').innerHTML    = S.mainW.toFixed(1)+' <em>m</em>';
+  document.getElementById('vMainD').innerHTML    = S.mainD.toFixed(1)+' <em>m</em>';
+  document.getElementById('vWingW').innerHTML    = S.wingW.toFixed(1)+' <em>m</em>';
+  document.getElementById('vWingD').innerHTML    = S.wingD.toFixed(1)+' <em>m</em>';
+  document.getElementById('vOverhang').innerHTML = S.overhang.toFixed(2)+' <em>m</em>';
+  updateSub2();
+  if (window._rebuild) window._rebuild();
+}
+
+function resetPreset() {
+  S.mainW=PRESET.mainW; S.mainD=PRESET.mainD; S.wingW=PRESET.wingW; S.wingD=PRESET.wingD; S.overhang=PRESET.overhang;
+  document.getElementById('slMainW').value=S.mainW;
+  document.getElementById('slMainD').value=S.mainD;
+  document.getElementById('slWingW').value=S.wingW;
+  document.getElementById('slWingD').value=S.wingD;
+  document.getElementById('slOverhang').value=S.overhang;
+  onVol();
+}
+
+// ── Shingle selector ──────────────────────────────────
+var currentLine = 'duration';
+
+function renderLineTabs() {
+  var el = document.getElementById('lineTabs');
+  if (!el) return;
+  el.innerHTML = SHINGLES.lines.map(function(line) {
+    return '<button class="line-tab'+(line.id===currentLine?' active':'')+'" onclick="selectLine(\''+line.id+'\',this)">'+line.label+'</button>';
+  }).join('');
+}
+
+function renderShingleGrid() {
+  var el = document.getElementById('shingleGrid');
+  if (!el) return;
+  var line = null;
+  for (var i=0; i<SHINGLES.lines.length; i++) { if (SHINGLES.lines[i].id===currentLine) { line=SHINGLES.lines[i]; break; } }
+  if (!line) return;
+  el.innerHTML = line.items.map(function(item) {
+    return '<div class="shingle-item'+(item.id===S.material?' active':'')+'" onclick="selectShingle(\''+item.id+'\',this)">'
+      +'<img class="shingle-thumb" src="tex/'+item.file+'" loading="lazy" alt="'+item.name+'">'
+      +'<div class="shingle-name">'+item.name+'</div>'
+      +'</div>';
+  }).join('');
+}
+
+function selectLine(lineId, btn) {
+  currentLine = lineId;
+  document.querySelectorAll('.line-tab').forEach(function(b){b.classList.remove('active');});
+  btn.classList.add('active');
+  renderShingleGrid();
+}
+
+function selectShingle(id, el) {
+  document.querySelectorAll('.shingle-item').forEach(function(e){e.classList.remove('active');});
+  el.classList.add('active');
+  S.material = id;
+  var info = SHINGLES_MAP[id];
+  if (info) {
+    var niceName = id.replace(/-/g,' ').replace(/\b\w/g, function(c){ return c.toUpperCase(); });
+    document.getElementById('sub3').textContent = info.line + ' · ' + niceName;
+  }
+  if (window._TEXS && window._TEXS[id]) {
+    if (window._rebuild) window._rebuild();
+  } else if (window._TL && info) {
+    window._TL.load('tex/'+info.file, function(tex) {
+      tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+      if (window._TEXS) window._TEXS[id] = tex;
+      if (window._rebuild) window._rebuild();
+    });
+  }
+}
+
+function toggleDrain() {
+  S.drainage=!S.drainage;
+  document.getElementById('drainToggle').classList.toggle('on',S.drainage);
+  document.getElementById('drainColors').style.display=S.drainage?'block':'none';
+  document.getElementById('sub4').textContent=S.drainage?'Activ':'Dezactivat';
+  if (window._rebuild) window._rebuild();
+}
+
+function selectDrainColor(hex, el) {
+  document.querySelectorAll('.cswatch').forEach(function(e){e.classList.remove('active');});
+  el.classList.add('active');
+  S.drainColor=hex;
+  if (window._rebuild) window._rebuild();
+}
+
+function sendConfig() {
+  var niceName = S.material.replace(/-/g,' ').replace(/\b\w/g,function(c){return c.toUpperCase();});
+  var info = SHINGLES_MAP[S.material] || {};
+  alert('Bună ziua!\nDoresc o ofertă pentru:\n• Formă: '+S.shape
+    +'\n• Corp: '+S.mainW+'×'+S.mainD+' m'
+    +(S.shape==='L'||S.shape==='T'?'\n• Aripă: '+S.wingW+'×'+S.wingD+' m':'')
+    +'\n• Material: '+(info.line||'')+' — '+niceName
+    +'\n• Scurgere: '+(S.drainage?'da':'nu'));
+}
+
+// Init selector UI
+renderLineTabs();
+renderShingleGrid();
+</script>
+</body>
+</html>
