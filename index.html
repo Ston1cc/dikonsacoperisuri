@@ -101,6 +101,9 @@
     .estimate .enote  { font-size:10px; color:#bbb; margin-top:2px; }
     .cta-btn { width:100%; padding:14px; background:#e8621a; color:#fff; border:none; border-radius:10px; font-size:15px; font-weight:700; cursor:pointer; transition:background .15s; }
     .cta-btn:hover { background:#c95415; }
+    .cta-next { width:100%; padding:12px; background:#1c1c1c; color:#fff; border:none; border-radius:10px; font-size:14px; font-weight:700; cursor:pointer; margin-top:12px; transition:background .15s; }
+    .cta-next:hover { background:#333; }
+    .step-info-note { font-size:11px; color:#888; line-height:1.5; margin-top:10px; padding:8px 0; border-top:1px solid #f0e9e0; }
 
     /* Material type tabs */
     .mat-type-tabs { display:flex; gap:8px; margin-bottom:12px; }
@@ -202,7 +205,7 @@
       <div class="step-header" onclick="toggleStep(2)">
         <div class="step-left">
           <div class="step-num">2</div>
-          <div class="step-text"><h3>Ajustează Volumetria</h3><p id="sub2">8.6 × 5.0 m · streașină 0.5 m</p></div>
+          <div class="step-text"><h3>Ajustează Volumetria</h3><p id="sub2">12.0 × 8.0 m · streașină 0.5 m</p></div>
         </div>
         <div class="step-toggle">›</div>
       </div>
@@ -215,34 +218,34 @@
           <div class="vol-card">
             <div class="vol-card-top">
               <span class="vol-card-label">Lățime corp<br>principal</span>
-              <span class="vol-card-val" id="vMainW">8.6 <em>m</em></span>
+              <span class="vol-card-val" id="vMainW">12.0 <em>m</em></span>
             </div>
-            <input type="range" id="slMainW" min="4" max="16" step="0.1" value="8.6" oninput="onVol()">
+            <input type="range" id="slMainW" min="4" max="20" step="0.1" value="12" oninput="onVol()">
             <p class="vol-card-desc">Controlează corpul principal pe axa frontală.</p>
           </div>
           <div class="vol-card">
             <div class="vol-card-top">
               <span class="vol-card-label">Adâncime corp<br>principal</span>
-              <span class="vol-card-val" id="vMainD">5.0 <em>m</em></span>
+              <span class="vol-card-val" id="vMainD">8.0 <em>m</em></span>
             </div>
-            <input type="range" id="slMainD" min="4" max="20" step="0.1" value="5" oninput="onVol()">
+            <input type="range" id="slMainD" min="4" max="20" step="0.1" value="8" oninput="onVol()">
             <p class="vol-card-desc">Definește cât de compact sau alungit este volumul principal.</p>
           </div>
           <!-- Wing — hidden for 2/4 pante -->
           <div class="vol-card" id="wingWCard" style="display:none">
             <div class="vol-card-top">
               <span class="vol-card-label">Lățime aripă<br>secundară</span>
-              <span class="vol-card-val" id="vWingW">4.8 <em>m</em></span>
+              <span class="vol-card-val" id="vWingW">5.0 <em>m</em></span>
             </div>
-            <input type="range" id="slWingW" min="2" max="12" step="0.1" value="4.8" oninput="onVol()">
+            <input type="range" id="slWingW" min="2" max="14" step="0.1" value="5.0" oninput="onVol()">
             <p class="vol-card-desc">Disponibil doar pentru formele în L și T.</p>
           </div>
           <div class="vol-card" id="wingDCard" style="display:none">
             <div class="vol-card-top">
               <span class="vol-card-label">Lungime aripă<br>secundară</span>
-              <span class="vol-card-val" id="vWingD">9.3 <em>m</em></span>
+              <span class="vol-card-val" id="vWingD">10.0 <em>m</em></span>
             </div>
-            <input type="range" id="slWingD" min="2" max="18" step="0.1" value="9.3" oninput="onVol()">
+            <input type="range" id="slWingD" min="2" max="20" step="0.1" value="10.0" oninput="onVol()">
             <p class="vol-card-desc">Controlează cât de mult se prelungește volumul secundar.</p>
           </div>
           <!-- Streașină — full width -->
@@ -258,6 +261,8 @@
         <div id="shapeNote" class="shape-note" style="display:none">
           Forma în L unește corpul principal cu o aripă laterală. Aici apare o dolie și o intersecție de acoperiș care trebuie urmărită atent la montaj.
         </div>
+        <p class="step-info-note" id="shapeInfoNote">Forma simplă folosește doar corpul principal. Acesta rămâne referința pentru comparația cu geometriile în L și T.</p>
+        <button class="cta-next" onclick="toggleStep(3)">Continuă la material →</button>
       </div>
     </div>
 
@@ -329,11 +334,11 @@
 // ═══════════════════════════════════════════
 //  STATE
 // ═══════════════════════════════════════════
-var PRESET = { mainW:8.6, mainD:5.0, wingW:4.8, wingD:9.3, overhang:0.5 };
+var PRESET = { mainW:12.0, mainD:8.0, wingW:5.0, wingD:10.0, overhang:0.5 };
 var S = {
   shape: '2pante',
-  mainW: 8.6, mainD: 5.0,
-  wingW: 4.8, wingD: 9.3,
+  mainW: 12.0, mainD: 8.0,
+  wingW: 5.0, wingD: 10.0,
   overhang: 0.5,
   wallH: 3.0,
   matType: 'sindrila',
@@ -403,17 +408,17 @@ window.addEventListener('load', function () {
 
   var camera = new THREE.PerspectiveCamera(40, s0.w / s0.h, 0.1, 200);
 
-  // Lights — boosted ambient so shadow faces stay readable
-  scene.add(new THREE.HemisphereLight(0xfff4e0, 0x88aa66, 1.6));
-  var sun = new THREE.DirectionalLight(0xfff8f0, 1.6);
-  sun.position.set(14, 22, 10);
+  // Lights — sun from front-right for specular highlight on front slope
+  scene.add(new THREE.HemisphereLight(0xfff4e0, 0x88aa66, 1.4));
+  var sun = new THREE.DirectionalLight(0xfff6f0, 2.2);
+  sun.position.set(10, 22, -14);  // front-right → specular on front slope visible to camera
   sun.castShadow = true;
   sun.shadow.mapSize.set(2048, 2048);
-  Object.assign(sun.shadow.camera, { near:1, far:80, left:-26, right:26, top:26, bottom:-26 });
+  Object.assign(sun.shadow.camera, { near:1, far:80, left:-30, right:30, top:30, bottom:-30 });
   sun.shadow.bias = -0.001;
   scene.add(sun);
-  var fill = new THREE.DirectionalLight(0xd4e8ff, 0.9);
-  fill.position.set(-12, 8, -12); scene.add(fill);
+  var fill = new THREE.DirectionalLight(0xd4e8ff, 0.7);
+  fill.position.set(-14, 10, 12); scene.add(fill);
 
   // Ground
   var ground = new THREE.Mesh(
@@ -425,7 +430,7 @@ window.addEventListener('load', function () {
   scene.add(ground);
 
   // ── Orbit ──────────────────────────────────────────────
-  var orb = { theta: -0.5, phi: 0.95, radius: 26, tx:0, ty:2.0, tz:0 };
+  var orb = { theta: -0.5, phi: 0.95, radius: 32, tx:0, ty:2.5, tz:0 };
   function orbCam() {
     camera.position.set(
       orb.tx + orb.radius * Math.sin(orb.phi) * Math.sin(orb.theta),
@@ -549,8 +554,8 @@ window.addEventListener('load', function () {
     return new THREE.MeshStandardMaterial({
       map: tex,
       color: tex ? 0xffffff : 0x4a3828,
-      roughness: S.matType==='tigla' ? 0.88 : 0.92,
-      metalness: 0.0,
+      roughness: S.matType==='tigla' ? 0.78 : 0.48,
+      metalness: S.matType==='tigla' ? 0.0  : 0.18,
       side: THREE.DoubleSide
     });
   }
