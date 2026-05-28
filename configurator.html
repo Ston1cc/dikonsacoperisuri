@@ -665,8 +665,8 @@ input[type=range]::-moz-range-thumb {
       </div>
       <div class="sp-body">
         <div class="price-banner">
-          <div><div class="pb-text">Estimare suprafață</div><div class="pb-price" id="estimatePriceBig">— lei</div></div>
-          <div style="text-align:right"><div class="pb-text">59 €/m² · la cheie</div><div class="pb-price" id="estimateEuro">—</div></div>
+          <div><div class="pb-text">Estimare orientativă</div><div class="pb-price" id="estimatePriceBig">—</div></div>
+          <div style="text-align:right"><div class="pb-text">Suprafață</div><div class="pb-price" id="estimateEuro">—</div></div>
         </div>
         <div class="estimate-box">
           <div class="est-item">
@@ -1036,15 +1036,18 @@ window.addEventListener('load', function () {
     var mW=S.mainW,mD=S.mainD,rH=ridgeH(mD);
     var sL=Math.sqrt((mD/2)*(mD/2)+rH*rH);
     var area=S.shape==='2pante'?2*sL*mW:S.shape==='4pante'?2*sL*mW*0.88+2*(mD/2)*mW*0.28:2*sL*mW*1.35;
-    var ppm=S.matType==='tigla'?110:95;
-    var lo=Math.round(area*ppm/100)*100, hi=Math.round(lo*1.45/100)*100;
-    var priceStr=lo.toLocaleString('ro-RO')+' – '+hi.toLocaleString('ro-RO')+' lei';
-    document.getElementById('estimatePrice').textContent=priceStr;
     var areaRound=Math.round(area);
+    // 59 €/m² la cheie — price range Standard→VIP
+    var euroLo=Math.round(area*59), euroHi=Math.round(area*59*1.35);
+    var euroStr='~'+euroLo.toLocaleString('ro-RO')+' – '+euroHi.toLocaleString('ro-RO')+' €';
+    var euroSingle='~'+euroLo.toLocaleString('ro-RO')+' €';
+    // Floating badge
+    document.getElementById('estimatePrice').textContent=euroStr;
     document.getElementById('estimateArea').textContent=areaRound+' m²';
-    var big=document.getElementById('estimatePriceBig'); if(big) big.textContent=priceStr;
+    // Step 5 banner
+    var big=document.getElementById('estimatePriceBig'); if(big) big.textContent=euroStr;
     var ab=document.getElementById('estimateAreaBig'); if(ab) ab.textContent=areaRound+' m²';
-    var euroEl=document.getElementById('estimateEuro'); if(euroEl) euroEl.textContent='~'+Math.round(area*59).toLocaleString('ro-RO')+' €';
+    var euroEl=document.getElementById('estimateEuro'); if(euroEl) euroEl.textContent='de la 59 €/m²';
     var matEl=document.getElementById('est-mat'); if(matEl){ var cat=MAT_CATALOG[S.matType],col=findColor(S.matType,S.matColor); matEl.textContent=cat.label+(col?' · '+col.name:''); }
   }
 
