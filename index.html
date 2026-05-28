@@ -102,14 +102,21 @@
     .cta-btn { width:100%; padding:14px; background:#e8621a; color:#fff; border:none; border-radius:10px; font-size:15px; font-weight:700; cursor:pointer; transition:background .15s; }
     .cta-btn:hover { background:#c95415; }
 
-    /* Shingle selector */
-    .line-tabs { display:flex; gap:5px; flex-wrap:wrap; margin-bottom:10px; }
-    .line-tab { padding:4px 11px; border-radius:16px; border:1px solid #ddd; background:#fff; font-size:11px; font-weight:600; cursor:pointer; color:#666; transition:all .15s; white-space:nowrap; }
-    .line-tab.active { background:#e8621a; border-color:#e8621a; color:#fff; }
+    /* Material type tabs */
+    .mat-type-tabs { display:flex; gap:8px; margin-bottom:12px; }
+    .mat-type-tab { flex:1; padding:9px 6px; border-radius:10px; border:2px solid #e5ddd4; background:#fff; font-size:12px; font-weight:700; cursor:pointer; text-align:center; color:#666; transition:all .15s; line-height:1.3; }
+    .mat-type-tab:hover { border-color:#e8621a66; background:#faf6f2; }
+    .mat-type-tab.active { border-color:#e8621a; background:#fff5f0; color:#e8621a; }
+    /* Tigla color swatches */
+    .tigla-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:7px; }
+    .tigla-item { border:2px solid transparent; border-radius:10px; padding:8px 6px 7px; cursor:pointer; text-align:center; background:#fff; transition:border-color .15s; }
+    .tigla-item.active, .tigla-item:hover { border-color:#e8621a; background:#fff9f6; }
+    .tigla-swatch { width:48px; height:44px; border-radius:8px; margin:0 auto 5px; border:1px solid rgba(0,0,0,0.1); }
+    .tigla-name { font-size:10px; font-weight:600; color:#555; line-height:1.3; }
+    /* Sindrila photo swatches */
     .shingle-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:6px; }
     .shingle-item { border-radius:8px; overflow:hidden; cursor:pointer; border:2px solid transparent; transition:border-color .15s; }
-    .shingle-item.active { border-color:#e8621a; }
-    .shingle-item:hover { border-color:#e8621a99; }
+    .shingle-item.active, .shingle-item:hover { border-color:#e8621a; }
     .shingle-thumb { width:100%; aspect-ratio:16/9; object-fit:cover; display:block; background:#e8e0d6; }
     .shingle-name { font-size:9px; font-weight:600; padding:3px 5px; background:#fff; text-align:center; line-height:1.3; color:#444; }
 
@@ -132,7 +139,7 @@
 
 <div class="feature-strip">
   <div class="feat-card"><h4>4 forme comparabile</h4><p>Casă simplă în 2 sau 4 pante, plus formele L și T, în același configurator.</p></div>
-  <div class="feat-card"><h4>13 culori reale</h4><p>Colecțiile Duration, Designer, Flex și Oakridge — texturi fotografice reale aplicate direct pe model.</p></div>
+  <div class="feat-card"><h4>2 tipuri, 14 nuanțe</h4><p>Țiglă Modulară (6 nuanțe) și Sindrila Bituminoasă (8 nuanțe), cu texturi reale aplicate pe model.</p></div>
   <div class="feat-card"><h4>Sistem de scurgere inclus</h4><p>Poți activa rapid sistemul de scurgere, iar configurația ajunge direct în cererea ta.</p></div>
 </div>
 
@@ -259,13 +266,13 @@
       <div class="step-header" onclick="toggleStep(3)">
         <div class="step-left">
           <div class="step-num">3</div>
-          <div class="step-text"><h3>Material &amp; Culoare</h3><p id="sub3">Duration · Driftwood</p></div>
+          <div class="step-text"><h3>Material &amp; Culoare</h3><p id="sub3">Sindrila Bituminoasă · Driftwood</p></div>
         </div>
         <div class="step-toggle">›</div>
       </div>
       <div class="step-body">
-        <div class="line-tabs" id="lineTabs"></div>
-        <div class="shingle-grid" id="shingleGrid"></div>
+        <div class="mat-type-tabs" id="matTypeTabs"></div>
+        <div id="matColorGrid"></div>
       </div>
     </div>
 
@@ -329,42 +336,47 @@ var S = {
   wingW: 4.8, wingD: 9.3,
   overhang: 0.5,
   wallH: 3.0,
-  material: 'driftwood',
+  matType: 'sindrila',
+  matColor: 'driftwood',
   drainage: false, drainColor: '#5a5a5a'
 };
 
 // ═══════════════════════════════════════════
-//  SHINGLE CATALOGUE
+//  MATERIAL CATALOGUE
 // ═══════════════════════════════════════════
-var SHINGLES = {
-  lines: [
-    { id: 'duration', label: 'Duration', items: [
-      { id: 'driftwood',        name: 'Driftwood',        file: 'trudefinition-duration-driftwood.jpg' },
-      { id: 'cool-sand-castle', name: 'Cool Sand Castle', file: 'trudefinition-duration-cool-sand-castle.jpg' },
-    ]},
-    { id: 'designer', label: 'Designer', items: [
-      { id: 'aged-copper',   name: 'Aged Copper',   file: 'trudefinition-duration-designer-aged-copper.jpg' },
-      { id: 'black-sable',   name: 'Black Sable',   file: 'trudefinition-duration-designer-black-sable.jpg' },
-      { id: 'bourbon',       name: 'Bourbon',       file: 'trudefinition-duration-designer-bourbon.jpg' },
-      { id: 'merlot',        name: 'Merlot',        file: 'trudefinition-duration-designer-merlot.jpg' },
-      { id: 'pacific-wave',  name: 'Pacific Wave',  file: 'trudefinition-duration-designer-pacific-wave.jpg' },
-      { id: 'sand-dune',     name: 'Sand Dune',     file: 'trudefinition-duration-designer-sand-dune.jpg' },
-      { id: 'sedona-canyon', name: 'Sedona Canyon', file: 'trudefinition-duration-designer-sedona-canyon.jpg' },
-      { id: 'storm-cloud',   name: 'Storm Cloud',   file: 'trudefinition-duration-designer-storm-cloud.jpg' },
-      { id: 'summer-harvest',name: 'Summer Harvest',file: 'trudefinition-duration-designer-summer-harvest.jpg' },
-    ]},
-    { id: 'flex', label: 'Duration Flex', items: [
-      { id: 'brownwood', name: 'Brownwood', file: 'trudefinition-duration-flex-brownwood.jpg' },
-    ]},
-    { id: 'oakridge', label: 'Oakridge', items: [
-      { id: 'aged-cedar', name: 'Aged Cedar', file: 'oakridge-aged-cedar.jpg' },
-    ]},
-  ]
+var MAT_CATALOG = {
+  tigla: {
+    label: 'Țiglă Modulară',
+    colors: [
+      { id:'tigla-gri',      name:'Gri Ardeziat',   h:0,   s:0,  lo:20, hi:38 },
+      { id:'tigla-rosu',     name:'Roșu Cărămiziu', h:10,  s:55, lo:22, hi:40 },
+      { id:'tigla-maro',     name:'Maro Natural',   h:25,  s:40, lo:18, hi:35 },
+      { id:'tigla-negru',    name:'Negru Mat',      h:0,   s:0,  lo:8,  hi:18 },
+      { id:'tigla-verde',    name:'Verde Închis',   h:140, s:35, lo:16, hi:30 },
+      { id:'tigla-teracota', name:'Teracotă',       h:18,  s:65, lo:28, hi:48 },
+    ]
+  },
+  sindrila: {
+    label: 'Sindrila Bituminoasă',
+    colors: [
+      { id:'driftwood',    name:'Driftwood',     file:'trudefinition-duration-driftwood.jpg' },
+      { id:'cool-sand',    name:'Sand Castle',   file:'trudefinition-duration-cool-sand-castle.jpg' },
+      { id:'black-sable',  name:'Black Sable',   file:'trudefinition-duration-designer-black-sable.jpg' },
+      { id:'bourbon',      name:'Bourbon',       file:'trudefinition-duration-designer-bourbon.jpg' },
+      { id:'merlot',       name:'Merlot',        file:'trudefinition-duration-designer-merlot.jpg' },
+      { id:'sedona-canyon',name:'Sedona Canyon', file:'trudefinition-duration-designer-sedona-canyon.jpg' },
+      { id:'storm-cloud',  name:'Storm Cloud',   file:'trudefinition-duration-designer-storm-cloud.jpg' },
+      { id:'aged-cedar',   name:'Aged Cedar',    file:'oakridge-aged-cedar.jpg' },
+    ]
+  }
 };
-var SHINGLES_MAP = {};
-SHINGLES.lines.forEach(function(line) {
-  line.items.forEach(function(item) { SHINGLES_MAP[item.id] = { file: item.file, line: line.label }; });
-});
+
+function findColor(type, id) {
+  var cols = MAT_CATALOG[type] ? MAT_CATALOG[type].colors : [];
+  for (var i=0; i<cols.length; i++) { if (cols[i].id===id) return cols[i]; }
+  return null;
+}
+function tiglaSwatchCSS(c) { return 'hsl('+c.h+','+c.s+'%,'+((c.lo+c.hi)/2)+'%)'; }
 
 // ═══════════════════════════════════════════
 //  THREE.JS
@@ -391,16 +403,16 @@ window.addEventListener('load', function () {
 
   var camera = new THREE.PerspectiveCamera(40, s0.w / s0.h, 0.1, 200);
 
-  // Lights
-  scene.add(new THREE.HemisphereLight(0xfff0e0, 0x88aa66, 1.0));
-  var sun = new THREE.DirectionalLight(0xfff8f0, 2.2);
+  // Lights — boosted ambient so shadow faces stay readable
+  scene.add(new THREE.HemisphereLight(0xfff4e0, 0x88aa66, 1.6));
+  var sun = new THREE.DirectionalLight(0xfff8f0, 1.6);
   sun.position.set(14, 22, 10);
   sun.castShadow = true;
   sun.shadow.mapSize.set(2048, 2048);
   Object.assign(sun.shadow.camera, { near:1, far:80, left:-26, right:26, top:26, bottom:-26 });
   sun.shadow.bias = -0.001;
   scene.add(sun);
-  var fill = new THREE.DirectionalLight(0xc8e0ff, 0.6);
+  var fill = new THREE.DirectionalLight(0xd4e8ff, 0.9);
   fill.position.set(-12, 8, -12); scene.add(fill);
 
   // Ground
@@ -442,8 +454,35 @@ window.addEventListener('load', function () {
     var s=sz(); renderer.setSize(s.w,s.h); camera.aspect=s.w/s.h; camera.updateProjectionMatrix();
   });
 
+  // ── Canvas tile texture (Tigla Modulara) ───────────────
+  function drawTileCanvas(ctx, w, h, cs) {
+    var nC=7, nR=6, tW=w/nC, tH=h/nR;
+    ctx.fillStyle='hsl('+cs.h+','+cs.s+'%,'+(cs.lo-3)+'%)';
+    ctx.fillRect(0,0,w,h);
+    for (var r=0; r<nR+2; r++) {
+      var oy=r*tH, ox=(r%2)*(tW/2);
+      for (var c=-1; c<nC+2; c++) {
+        var ox2=c*tW+ox, lv=((r*3+c*7)%5)-2;
+        var mid=(cs.lo+cs.hi)/2+lv;
+        ctx.fillStyle='hsl('+cs.h+','+cs.s+'%,'+mid+'%)';
+        ctx.fillRect(ox2+1.5, oy+1.5, tW-3, tH-3);
+        var sg=ctx.createLinearGradient(0,oy+tH-5,0,oy+tH);
+        sg.addColorStop(0,'rgba(0,0,0,0)'); sg.addColorStop(1,'rgba(0,0,0,0.35)');
+        ctx.fillStyle=sg; ctx.fillRect(ox2+1.5,oy+tH-5,tW-3,5);
+        ctx.fillStyle='rgba(255,255,255,0.15)';
+        ctx.fillRect(ox2+1.5,oy+1.5,tW-3,2.5);
+      }
+    }
+  }
+  function makeTileTex(cs) {
+    var cv=document.createElement('canvas'); cv.width=cv.height=512;
+    drawTileCanvas(cv.getContext('2d'),512,512,cs);
+    var t=new THREE.CanvasTexture(cv); t.wrapS=t.wrapT=THREE.RepeatWrapping; return t;
+  }
+
   // ── Texture cache ──────────────────────────────────────
   var TEXS = {};
+  MAT_CATALOG.tigla.colors.forEach(function(cs) { TEXS[cs.id] = makeTileTex(cs); });
   var TL = new THREE.TextureLoader();
   window._TEXS = TEXS;
   window._TL   = TL;
@@ -480,8 +519,8 @@ window.addEventListener('load', function () {
     return g;
   };
 
-  // UV helpers: 2.0m per texture width, 1.5m per texture height
-  function uvU(d) { return d / 2.0; }
+  // UV helpers — tigla tiles slightly denser than sindrila shingles
+  function uvU(d) { return d / (S.matType==='tigla' ? 2.1 : 2.0); }
   function uvV(s) { return s / 1.5; }
 
   function gableGeo(W,D,wH,rH,ov) {
@@ -506,11 +545,11 @@ window.addEventListener('load', function () {
 
   // ── Materials ──────────────────────────────────────────
   function roofMat() {
-    var tex = TEXS[S.material] || null;
+    var tex = TEXS[S.matColor] || null;
     return new THREE.MeshStandardMaterial({
       map: tex,
       color: tex ? 0xffffff : 0x4a3828,
-      roughness: 0.88,
+      roughness: S.matType==='tigla' ? 0.88 : 0.92,
       metalness: 0.0,
       side: THREE.DoubleSide
     });
@@ -530,10 +569,44 @@ window.addEventListener('load', function () {
     });
   }
 
-  function addBox(bw,bd,px,pz,group) {
+  function addWinDoor(bw, bd, wH, px, pz, group) {
+    var wMat = new THREE.MeshStandardMaterial({ color:0xfcf8f3, roughness:0.45 });
+    var gMat = new THREE.MeshStandardMaterial({ color:0x9bbcce, roughness:0.05, metalness:0.12, transparent:true, opacity:0.68 });
+    var dMat = new THREE.MeshStandardMaterial({ color:0x5c3a1e, roughness:0.82 });
+    var fZ   = pz - bd/2 - 0.06;  // 6 cm in front of front wall
+    var wY   = wH * 0.57;
+    var ox   = Math.min(bw * 0.28, bw/2 - 0.95);
+
+    // Door frame + panel
+    var df = new THREE.Mesh(new THREE.BoxGeometry(1.04, 2.2, 0.13), wMat);
+    df.position.set(px, 1.1, fZ); df.castShadow=true; group.add(df);
+    var dp = new THREE.Mesh(new THREE.BoxGeometry(0.9, 2.1, 0.1), dMat);
+    dp.position.set(px, 1.05, fZ); group.add(dp);
+
+    // Front windows (if wide enough)
+    if (bw > 3.5) {
+      [-ox, ox].forEach(function(dx) {
+        var wf = new THREE.Mesh(new THREE.BoxGeometry(1.24, 1.17, 0.13), wMat);
+        wf.position.set(px+dx, wY, fZ); wf.castShadow=true; group.add(wf);
+        var wg = new THREE.Mesh(new THREE.BoxGeometry(1.1, 1.05, 0.1), gMat);
+        wg.position.set(px+dx, wY, fZ); group.add(wg);
+      });
+    }
+
+    // Side windows (one per side wall)
+    [[px - bw/2 - 0.06, pz], [px + bw/2 + 0.06, pz]].forEach(function(pos) {
+      var sf = new THREE.Mesh(new THREE.BoxGeometry(0.13, 1.07, 1.14), wMat);
+      sf.position.set(pos[0], wY, pos[1]); sf.castShadow=true; group.add(sf);
+      var sg = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.95, 1.0), gMat);
+      sg.position.set(pos[0], wY, pos[1]); group.add(sg);
+    });
+  }
+
+  function addBox(bw,bd,px,pz,group,skipDetails) {
     var wH=S.wallH;
     var m=new THREE.Mesh(new THREE.BoxGeometry(bw,wH,bd), wallMat());
     m.position.set(px,wH/2,pz); m.castShadow=m.receiveShadow=true; group.add(m);
+    if (!skipDetails) addWinDoor(bw, bd, wH, px, pz, group);
   }
 
   function addRoof(geo,px,pz,group) {
@@ -576,7 +649,7 @@ window.addEventListener('load', function () {
       var px1=-(wW/2), pz1=0;
       var px2=(mW+wW)/2-(wW/2), pz2=(mD-wD)/2;
       addBox(mW,mD,px1,pz1,houseGroup);
-      addBox(wW,wD,px2,pz2,houseGroup);
+      addBox(wW,wD,px2,pz2,houseGroup,true);
       addRoof(hipGeo(mW,mD,wH,ridgeH(mW),ov),px1,pz1,houseGroup);
       addRoof(hipGeo(wW,wD,wH,ridgeH(wW),ov),px2,pz2,houseGroup);
       addGutters(mW,mD,px1,pz1,houseGroup);
@@ -585,7 +658,7 @@ window.addEventListener('load', function () {
       var px1=0, pz1=(wD/2);
       var px2=0, pz2=-(mD/2);
       addBox(mW,mD,px1,pz1,houseGroup);
-      addBox(wW,wD,px2,pz2,houseGroup);
+      addBox(wW,wD,px2,pz2,houseGroup,true);
       addRoof(hipGeo(mW,mD,wH,ridgeH(mW),ov),px1,pz1,houseGroup);
       addRoof(hipGeo(wW,wD,wH,ridgeH(wW),ov),px2,pz2,houseGroup);
       addGutters(mW,mD,px1,pz1,houseGroup);
@@ -615,7 +688,8 @@ window.addEventListener('load', function () {
     var area = S.shape==='2pante' ? 2*sL*mD
              : S.shape==='4pante' ? 2*sL*mD*0.88+2*(mW/2)*mD*0.28
              : 2*sL*mD*1.35;
-    var lo=Math.round(area*95/100)*100;
+    var ppm = S.matType==='tigla' ? 110 : 95;
+    var lo=Math.round(area*ppm/100)*100;
     var hi=Math.round(lo*1.45/100)*100;
     document.getElementById('estimatePrice').textContent =
       lo.toLocaleString('ro-RO')+' – '+hi.toLocaleString('ro-RO')+' lei';
@@ -702,55 +776,78 @@ function resetPreset() {
   onVol();
 }
 
-// ── Shingle selector ──────────────────────────────────
-var currentLine = 'duration';
-
-function renderLineTabs() {
-  var el = document.getElementById('lineTabs');
+// ── Material selector ─────────────────────────────────
+function renderMatTypeTabs() {
+  var el = document.getElementById('matTypeTabs');
   if (!el) return;
-  el.innerHTML = SHINGLES.lines.map(function(line) {
-    return '<button class="line-tab'+(line.id===currentLine?' active':'')+'" onclick="selectLine(\''+line.id+'\',this)">'+line.label+'</button>';
+  el.innerHTML = Object.keys(MAT_CATALOG).map(function(key) {
+    return '<button class="mat-type-tab'+(key===S.matType?' active':'')+'" onclick="selectMatType(\''+key+'\',this)">'
+      + MAT_CATALOG[key].label + '</button>';
   }).join('');
 }
 
-function renderShingleGrid() {
-  var el = document.getElementById('shingleGrid');
+function renderColorGrid() {
+  var el = document.getElementById('matColorGrid');
   if (!el) return;
-  var line = null;
-  for (var i=0; i<SHINGLES.lines.length; i++) { if (SHINGLES.lines[i].id===currentLine) { line=SHINGLES.lines[i]; break; } }
-  if (!line) return;
-  el.innerHTML = line.items.map(function(item) {
-    return '<div class="shingle-item'+(item.id===S.material?' active':'')+'" onclick="selectShingle(\''+item.id+'\',this)">'
-      +'<img class="shingle-thumb" src="tex/'+item.file+'" loading="lazy" alt="'+item.name+'">'
-      +'<div class="shingle-name">'+item.name+'</div>'
-      +'</div>';
-  }).join('');
-}
-
-function selectLine(lineId, btn) {
-  currentLine = lineId;
-  document.querySelectorAll('.line-tab').forEach(function(b){b.classList.remove('active');});
-  btn.classList.add('active');
-  renderShingleGrid();
-}
-
-function selectShingle(id, el) {
-  document.querySelectorAll('.shingle-item').forEach(function(e){e.classList.remove('active');});
-  el.classList.add('active');
-  S.material = id;
-  var info = SHINGLES_MAP[id];
-  if (info) {
-    var niceName = id.replace(/-/g,' ').replace(/\b\w/g, function(c){ return c.toUpperCase(); });
-    document.getElementById('sub3').textContent = info.line + ' · ' + niceName;
+  var cat = MAT_CATALOG[S.matType];
+  if (S.matType === 'tigla') {
+    el.innerHTML = '<div class="tigla-grid">'
+      + cat.colors.map(function(c) {
+          return '<div class="tigla-item'+(c.id===S.matColor?' active':'')+'" onclick="selectColor(\''+c.id+'\',this)">'
+            +'<div class="tigla-swatch" style="background:'+tiglaSwatchCSS(c)+'"></div>'
+            +'<div class="tigla-name">'+c.name+'</div></div>';
+        }).join('')
+      + '</div>';
+  } else {
+    el.innerHTML = '<div class="shingle-grid">'
+      + cat.colors.map(function(c) {
+          return '<div class="shingle-item'+(c.id===S.matColor?' active':'')+'" onclick="selectColor(\''+c.id+'\',this)">'
+            +'<img class="shingle-thumb" src="tex/'+c.file+'" loading="lazy" alt="'+c.name+'">'
+            +'<div class="shingle-name">'+c.name+'</div></div>';
+        }).join('')
+      + '</div>';
   }
-  if (window._TEXS && window._TEXS[id]) {
+}
+
+function selectMatType(key, btn) {
+  S.matType  = key;
+  S.matColor = MAT_CATALOG[key].colors[0].id;
+  document.querySelectorAll('.mat-type-tab').forEach(function(b){b.classList.remove('active');});
+  btn.classList.add('active');
+  renderColorGrid();
+  updateSub3();
+  loadAndRebuild();
+}
+
+function selectColor(id, el) {
+  document.querySelectorAll('.tigla-item,.shingle-item').forEach(function(e){e.classList.remove('active');});
+  el.classList.add('active');
+  S.matColor = id;
+  updateSub3();
+  loadAndRebuild();
+}
+
+function updateSub3() {
+  var cat = MAT_CATALOG[S.matType];
+  var col = findColor(S.matType, S.matColor);
+  document.getElementById('sub3').textContent = cat.label + (col ? ' · '+col.name : '');
+}
+
+function loadAndRebuild() {
+  if (S.matType === 'tigla') {
     if (window._rebuild) window._rebuild();
-  } else if (window._TL && info) {
-    window._TL.load('tex/'+info.file, function(tex) {
-      tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
-      if (window._TEXS) window._TEXS[id] = tex;
+  } else {
+    var col = findColor('sindrila', S.matColor);
+    if (!col) return;
+    if (window._TEXS && window._TEXS[S.matColor]) {
       if (window._rebuild) window._rebuild();
-    });
+    } else if (window._TL) {
+      window._TL.load('tex/'+col.file, function(tex) {
+        tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+        if (window._TEXS) window._TEXS[S.matColor] = tex;
+        if (window._rebuild) window._rebuild();
+      });
+    }
   }
 }
 
@@ -770,18 +867,18 @@ function selectDrainColor(hex, el) {
 }
 
 function sendConfig() {
-  var niceName = S.material.replace(/-/g,' ').replace(/\b\w/g,function(c){return c.toUpperCase();});
-  var info = SHINGLES_MAP[S.material] || {};
+  var cat = MAT_CATALOG[S.matType];
+  var col = findColor(S.matType, S.matColor);
   alert('Bună ziua!\nDoresc o ofertă pentru:\n• Formă: '+S.shape
     +'\n• Corp: '+S.mainW+'×'+S.mainD+' m'
     +(S.shape==='L'||S.shape==='T'?'\n• Aripă: '+S.wingW+'×'+S.wingD+' m':'')
-    +'\n• Material: '+(info.line||'')+' — '+niceName
+    +'\n• Material: '+cat.label+(col?' — '+col.name:'')
     +'\n• Scurgere: '+(S.drainage?'da':'nu'));
 }
 
-// Init selector UI
-renderLineTabs();
-renderShingleGrid();
+// Init UI
+renderMatTypeTabs();
+renderColorGrid();
 </script>
 </body>
 </html>
