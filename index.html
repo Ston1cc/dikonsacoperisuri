@@ -364,14 +364,14 @@ var MAT_CATALOG = {
   sindrila: {
     label: 'Sindrila Bituminoasă',
     colors: [
-      { id:'driftwood',    name:'Driftwood',     file:'trudefinition-duration-driftwood.jpg' },
-      { id:'cool-sand',    name:'Sand Castle',   file:'trudefinition-duration-cool-sand-castle.jpg' },
-      { id:'black-sable',  name:'Black Sable',   file:'trudefinition-duration-designer-black-sable.jpg' },
-      { id:'bourbon',      name:'Bourbon',       file:'trudefinition-duration-designer-bourbon.jpg' },
-      { id:'merlot',       name:'Merlot',        file:'trudefinition-duration-designer-merlot.jpg' },
-      { id:'sedona-canyon',name:'Sedona Canyon', file:'trudefinition-duration-designer-sedona-canyon.jpg' },
-      { id:'storm-cloud',  name:'Storm Cloud',   file:'trudefinition-duration-designer-storm-cloud.jpg' },
-      { id:'aged-cedar',   name:'Aged Cedar',    file:'oakridge-aged-cedar.jpg' },
+      { id:'driftwood',    name:'Driftwood',     file:'trudefinition-duration-driftwood.jpg',                    tint:0x7a6650 },
+      { id:'cool-sand',    name:'Sand Castle',   file:'trudefinition-duration-cool-sand-castle.jpg',             tint:0xa09070 },
+      { id:'black-sable',  name:'Black Sable',   file:'trudefinition-duration-designer-black-sable.jpg',         tint:0x262626 },
+      { id:'bourbon',      name:'Bourbon',       file:'trudefinition-duration-designer-bourbon.jpg',             tint:0x6a3c22 },
+      { id:'merlot',       name:'Merlot',        file:'trudefinition-duration-designer-merlot.jpg',              tint:0x5c2430 },
+      { id:'sedona-canyon',name:'Sedona Canyon', file:'trudefinition-duration-designer-sedona-canyon.jpg',       tint:0x8c4830 },
+      { id:'storm-cloud',  name:'Storm Cloud',   file:'trudefinition-duration-designer-storm-cloud.jpg',         tint:0x4a5060 },
+      { id:'aged-cedar',   name:'Aged Cedar',    file:'oakridge-aged-cedar.jpg',                                 tint:0x6e4c30 },
     ]
   }
 };
@@ -493,24 +493,36 @@ window.addEventListener('load', function () {
   window._TEXS = TEXS;
   window._TL   = TL;
 
-  // ── PBR maps for Țiglă Modulară (ambientcg RoofingTiles013A) ──
+  // ── PBR maps loader (shared helper) ────────────────────
+  function loadPbrMaps(baseDir, prefix, maps, onAllLoaded) {
+    var loaded = 0;
+    var pairs = [
+      ['color',  prefix+'_Color.jpg'],
+      ['normal', prefix+'_NormalGL.jpg'],
+      ['rough',  prefix+'_Roughness.jpg']
+    ];
+    var tl = new THREE.TextureLoader();
+    pairs.forEach(function(pair) {
+      tl.load(baseDir+pair[1], function(t) {
+        t.wrapS = t.wrapT = THREE.RepeatWrapping;
+        maps[pair[0]] = t;
+        if (++loaded === 3) onAllLoaded();
+      });
+    });
+  }
+
+  // Țiglă Modulară — RoofingTiles013A
   var TIGLA_MAPS = { color: null, normal: null, rough: null };
   window._TIGLA_MAPS = TIGLA_MAPS;
-  var _tiglaLoaded = 0;
-  function _onTiglaMap() {
-    _tiglaLoaded++;
-    if (_tiglaLoaded === 3 && S.matType === 'tigla' && window._rebuild) window._rebuild();
-  }
-  var _tl2 = new THREE.TextureLoader();
-  [['color','RoofingTiles013A_1K-JPG_Color.jpg'],
-   ['normal','RoofingTiles013A_1K-JPG_NormalGL.jpg'],
-   ['rough', 'RoofingTiles013A_1K-JPG_Roughness.jpg']
-  ].forEach(function(pair) {
-    _tl2.load('tex/tigla/'+pair[1], function(t) {
-      t.wrapS = t.wrapT = THREE.RepeatWrapping;
-      TIGLA_MAPS[pair[0]] = t;
-      _onTiglaMap();
-    });
+  loadPbrMaps('tex/tigla/', 'RoofingTiles013A_1K-JPG', TIGLA_MAPS, function() {
+    if (S.matType === 'tigla' && window._rebuild) window._rebuild();
+  });
+
+  // Sindrila Bituminoasă — WoodSiding012
+  var SINDRILA_MAPS = { color: null, normal: null, rough: null };
+  window._SINDRILA_MAPS = SINDRILA_MAPS;
+  loadPbrMaps('tex/sindrila/', 'WoodSiding012_1K-JPG', SINDRILA_MAPS, function() {
+    if (S.matType === 'sindrila' && window._rebuild) window._rebuild();
   });
 
   // ── Geometry builder ───────────────────────────────────
@@ -586,14 +598,19 @@ window.addEventListener('load', function () {
         side:         THREE.DoubleSide
       });
     }
-    // sindrila
-    var tex = TEXS[S.matColor] || null;
+    // sindrila — PBR WoodSiding012 + per-color tint
+    var col2 = findColor('sindrila', S.matColor);
+    var tint2 = col2 ? col2.tint : 0x888888;
+    var hasPBR2 = SINDRILA_MAPS.color && SINDRILA_MAPS.normal && SINDRILA_MAPS.rough;
     return new THREE.MeshStandardMaterial({
-      map:       tex,
-      color:     tex ? 0xffffff : 0x1a1a1a,
-      roughness: 0.48,
-      metalness: 0.18,
-      side:      THREE.DoubleSide
+      map:          hasPBR2 ? SINDRILA_MAPS.color  : (TEXS[S.matColor] || null),
+      normalMap:    hasPBR2 ? SINDRILA_MAPS.normal : null,
+      normalScale:  new THREE.Vector2(1.2, 1.2),
+      roughnessMap: hasPBR2 ? SINDRILA_MAPS.rough  : null,
+      color:        hasPBR2 ? tint2 : 0xffffff,
+      roughness:    0.55,
+      metalness:    0.05,
+      side:         THREE.DoubleSide
     });
   }
 
