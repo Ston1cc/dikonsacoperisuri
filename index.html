@@ -597,6 +597,8 @@ footer { background: var(--dark); padding: clamp(40px,6vw,64px) 0 0; }
 @media (max-width: 900px) {
   .nav-links, .nav-btn { display: none; }
   .hamburger { display: flex; }
+  /* Show house (right side of hero image) more prominently on tablet */
+  .hero { background-position: 70% center; }
   .hero h1 { letter-spacing: -2px; }
   .config-header { grid-template-columns: 1fr; gap: 14px; }
   .why-grid { grid-template-columns: 1fr; }
@@ -613,6 +615,17 @@ footer { background: var(--dark); padding: clamp(40px,6vw,64px) 0 0; }
   .values-grid { grid-template-columns: 1fr 1fr; }
 }
 @media (max-width: 600px) {
+  /* Pull hero further right on small phones so the house is clearly visible */
+  .hero { background-position: 78% center; }
+  .hero::before {
+    background: linear-gradient(
+      110deg,
+      rgba(10,8,6,.88) 0%,
+      rgba(10,8,6,.70) 40%,
+      rgba(10,8,6,.30) 70%,
+      rgba(10,8,6,.10) 100%
+    );
+  }
   .stats-inner { grid-template-columns: 1fr; }
   .stat { border-right: none; border-bottom: 1px solid rgba(255,255,255,.07); }
   .stat:last-child { border-bottom: none; }
@@ -1198,14 +1211,8 @@ function observeAll() {
     .forEach(function(el){ io.observe(el); });
 }
 
-/* ── Hero parallax ───────────────────── */
-var heroEl = document.querySelector('.hero');
 window.addEventListener('scroll', function(){
   document.getElementById('nav').classList.toggle('scrolled', window.scrollY > 20);
-  if (heroEl) {
-    var y = window.scrollY * 0.35;
-    heroEl.style.backgroundPositionY = 'calc(50% + ' + y + 'px)';
-  }
 }, {passive:true});
 
 /* ── Contact form ────────────────────── */
