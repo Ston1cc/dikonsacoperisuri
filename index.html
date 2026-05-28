@@ -699,13 +699,17 @@ window.addEventListener('load', function () {
     if (houseGroup) { disposeGroup(houseGroup); scene.remove(houseGroup); }
     houseGroup = new THREE.Group();
     var mW=S.mainW, mD=S.mainD, wW=S.wingW, wD=S.wingD, ov=S.overhang, wH=S.wallH;
+    // platFootprints: list of {w,d,px,pz} used to build the shape-specific foundation
+    var platFootprints = [];
 
     if (S.shape === '2pante') {
+      platFootprints = [{w:mW, d:mD, px:0, pz:0}];
       addBox(mW,mD,0,0,houseGroup);
       addRoofY(gableGeo(mD,mW,wH,ridgeH(mD),ov),0,0,houseGroup);
       addGutters(mW,mD,0,0,houseGroup);
 
     } else if (S.shape === '4pante') {
+      platFootprints = [{w:mW, d:mD, px:0, pz:0}];
       addBox(mW,mD,0,0,houseGroup);
       addRoofY(hipGeo(mD,mW,wH,ridgeH(mD),ov),0,0,houseGroup);
       addGutters(mW,mD,0,0,houseGroup);
@@ -713,6 +717,7 @@ window.addEventListener('load', function () {
     } else if (S.shape === 'L') {
       var px1=-(wW/2), pz1=0;
       var px2=(mW+wW)/2-(wW/2), pz2=(mD-wD)/2;
+      platFootprints = [{w:mW, d:mD, px:px1, pz:pz1}, {w:wW, d:wD, px:px2, pz:pz2}];
       addBox(mW,mD,px1,pz1,houseGroup);
       addBox(wW,wD,px2,pz2,houseGroup,true);
       addRoofY(hipGeo(mD,mW,wH,ridgeH(mD),ov),px1,pz1,houseGroup);
@@ -722,6 +727,7 @@ window.addEventListener('load', function () {
     } else if (S.shape === 'T') {
       var px1=0, pz1=(wD/2);
       var px2=0, pz2=-(mD/2);
+      platFootprints = [{w:mW, d:mD, px:px1, pz:pz1}, {w:wW, d:wD, px:px2, pz:pz2}];
       addBox(mW,mD,px1,pz1,houseGroup);
       addBox(wW,wD,px2,pz2,houseGroup,true);
       addRoofY(hipGeo(mD,mW,wH,ridgeH(mD),ov),px1,pz1,houseGroup);
@@ -742,13 +748,15 @@ window.addEventListener('load', function () {
     var ctr=box.getCenter(new THREE.Vector3());
     houseGroup.position.x -= ctr.x; houseGroup.position.z -= ctr.z;
 
-    // Foundation platform — sits under the whole house, slightly wider on all sides
+    // Foundation — one slab per body section, matches each shape's footprint
     var platH = 0.45;
     var pMat = new THREE.MeshStandardMaterial({ color:0xc8c0b4, roughness:0.88, metalness:0 });
-    var pMesh = new THREE.Mesh(new THREE.BoxGeometry(mW+1.0, platH, mD+0.8), pMat);
-    pMesh.position.set(0, -platH/2, 0);  // local Y=-platH/2 → world Y=platH/2 after raise
-    pMesh.castShadow = true; pMesh.receiveShadow = true;
-    houseGroup.add(pMesh);
+    platFootprints.forEach(function(fp) {
+      var slab = new THREE.Mesh(new THREE.BoxGeometry(fp.w+0.9, platH, fp.d+0.7), pMat);
+      slab.position.set(fp.px, -platH/2, fp.pz);
+      slab.castShadow = true; slab.receiveShadow = true;
+      houseGroup.add(slab);
+    });
 
     // Raise entire group so house walls sit on top of the platform
     houseGroup.position.y = platH;
