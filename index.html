@@ -3,1045 +3,1098 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Configurator Acoperiș 3D | DikonSa Coperișuri</title>
-  <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
+  <title>DikonSa Coperișuri — Acoperișuri de calitate în Moldova</title>
+  <meta name="description" content="Specialist în montaj și renovare acoperișuri în Moldova. Oferte gratuite, garanție extinsă, echipă certificată.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
   <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: 'Segoe UI', system-ui, sans-serif; background: #f3ece3; color: #1c1c1c; min-height: 100vh; }
+/* ── Variables ────────────────────────────────── */
+:root {
+  --bg:     #F7F4F0;
+  --dark:   #1A1714;
+  --orange: #E8621A;
+  --sand:   #D9CEC3;
+  --mid:    #8A7F74;
+  --white:  #FFFFFF;
+  --card:   #FEFDFC;
+  --orange-soft: #FFF3EC;
+  --display: 'Syne', sans-serif;
+  --body:    'Outfit', sans-serif;
+}
 
-    .site-header { background:#fff; border-bottom:1px solid #e8e0d6; padding:14px 28px; display:flex; align-items:center; gap:10px; }
-    .site-header .logo { font-size:18px; font-weight:800; }
-    .site-header .logo span { color:#e8621a; }
+/* ── Reset ────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body { font-family: var(--body); background: var(--bg); color: var(--dark); overflow-x: hidden; }
+a { text-decoration: none; color: inherit; }
+button { font-family: var(--body); cursor: pointer; }
+img { display: block; max-width: 100%; }
 
-    .top-prose { text-align:center; padding:36px 24px 16px; }
-    .top-prose h2 { font-size:clamp(20px,2.5vw,28px); font-weight:800; line-height:1.3; max-width:560px; margin:0 auto 24px; }
-    .top-prose h2 em { color:#e8621a; font-style:normal; }
+/* ── Nav ──────────────────────────────────────── */
+#nav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 900;
+  height: 62px;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 clamp(16px, 4vw, 56px);
+  background: rgba(247,244,240,0.88);
+  backdrop-filter: blur(14px) saturate(1.4);
+  border-bottom: 1px solid transparent;
+  transition: border-color .3s;
+}
+#nav.scrolled { border-bottom-color: var(--sand); }
 
-    .feature-strip { display:flex; gap:12px; justify-content:center; flex-wrap:wrap; max-width:1100px; margin:0 auto 24px; padding:0 24px; }
-    .feat-card { background:#fff; border-radius:12px; padding:14px 18px; flex:1; min-width:180px; max-width:320px; box-shadow:0 1px 4px rgba(0,0,0,.07); }
-    .feat-card h4 { font-size:13px; font-weight:700; margin-bottom:5px; }
-    .feat-card p  { font-size:12px; color:#666; line-height:1.45; }
+.nav-logo {
+  font-family: var(--display); font-size: 19px; font-weight: 800;
+  letter-spacing: -.4px; white-space: nowrap;
+}
+.nav-logo em { color: var(--orange); font-style: normal; }
 
-    .configurator { display:flex; gap:18px; padding:0 24px 48px; max-width:1280px; margin:0 auto; align-items:flex-start; }
+.nav-links { display: flex; gap: 28px; list-style: none; }
+.nav-links a {
+  font-size: 13.5px; font-weight: 500; color: var(--mid);
+  transition: color .2s; position: relative; padding-bottom: 2px;
+}
+.nav-links a::after {
+  content: ''; position: absolute; bottom: -4px; left: 0; right: 100%;
+  height: 1.5px; background: var(--orange); transition: right .25s ease;
+}
+.nav-links a.active, .nav-links a:hover { color: var(--dark); }
+.nav-links a.active::after, .nav-links a:hover::after { right: 0; }
 
-    /* Viewer */
-    .viewer-panel { flex:1; background:#fff; border-radius:16px; overflow:hidden; box-shadow:0 2px 10px rgba(0,0,0,.08); position:sticky; top:18px; }
-    .viewer-badges { display:flex; gap:8px; padding:10px 14px; border-bottom:1px solid #f0e9df; flex-wrap:wrap; }
-    .badge { display:flex; align-items:center; gap:5px; padding:5px 11px; border-radius:20px; border:1px solid #e5ddd4; font-size:12px; color:#555; background:#faf6f2; }
-    #viewer-wrap { width:100%; height:430px; position:relative; overflow:hidden; background:#f0e8de; }
-    #roof-canvas { display:block; position:absolute; top:0; left:0; width:100%; height:100%; cursor:grab; touch-action:none; }
-    #roof-canvas:active { cursor:grabbing; }
-    .viewer-note { padding:10px 14px; background:#faf6f2; font-size:12px; color:#777; border-top:1px solid #f0e9df; line-height:1.5; }
+.nav-btn {
+  font-size: 13px; font-weight: 600;
+  padding: 9px 22px; border-radius: 6px;
+  background: var(--dark); color: var(--white); border: none;
+  transition: background .2s, transform .15s; white-space: nowrap;
+}
+.nav-btn:hover { background: var(--orange); transform: translateY(-1px); }
 
-    /* Config */
-    .config-panel { width:420px; flex-shrink:0; display:flex; flex-direction:column; gap:8px; }
-    .step { background:#fff; border-radius:12px; overflow:hidden; box-shadow:0 1px 4px rgba(0,0,0,.06); }
-    .step-header { display:flex; align-items:center; justify-content:space-between; padding:14px 16px; cursor:pointer; user-select:none; transition:background .1s; }
-    .step-header:hover { background:#faf6f2; }
-    .step-left { display:flex; align-items:center; gap:10px; }
-    .step-num { width:26px; height:26px; border-radius:50%; background:#e8621a; color:#fff; font-size:13px; font-weight:700; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
-    .step-text h3 { font-size:14px; font-weight:700; }
-    .step-text p  { font-size:11px; color:#999; margin-top:1px; }
-    .step-toggle { width:26px; height:26px; border-radius:50%; border:1px solid #ddd; display:flex; align-items:center; justify-content:center; font-size:13px; color:#666; transition:transform .2s; }
-    .step.open .step-toggle { transform:rotate(180deg); }
-    .step-body { padding:0 16px 14px; display:none; }
-    .step.open .step-body { display:block; }
+.hamburger {
+  display: none; flex-direction: column; gap: 5px;
+  background: none; border: none; padding: 4px;
+}
+.hamburger span {
+  display: block; width: 22px; height: 2px;
+  background: var(--dark); border-radius: 2px; transition: all .3s;
+}
+.hamburger.open span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+.hamburger.open span:nth-child(2) { opacity: 0; }
+.hamburger.open span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
 
-    /* Shape */
-    .shape-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
-    .shape-opt { border:2px solid #e5ddd4; border-radius:10px; padding:10px; cursor:pointer; display:flex; align-items:flex-start; gap:8px; transition:all .15s; }
-    .shape-opt:hover { border-color:#e8621a; background:#fff9f6; }
-    .shape-opt.active { border-color:#e8621a; background:#fff5f0; }
-    .shape-ico { width:34px; height:34px; background:#fff0e8; border-radius:7px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
-    .shape-ico svg { width:20px; height:20px; }
-    .shape-text h5 { font-size:12px; font-weight:700; }
-    .shape-text p  { font-size:10px; color:#999; line-height:1.3; margin-top:2px; }
+.mobile-menu {
+  display: none; position: fixed; top: 62px; left: 0; right: 0;
+  background: var(--bg); border-bottom: 1px solid var(--sand);
+  padding: 12px clamp(16px,4vw,56px) 20px; z-index: 899;
+  flex-direction: column;
+}
+.mobile-menu.open { display: flex; }
+.mobile-menu a {
+  font-size: 15px; font-weight: 500; color: var(--dark);
+  padding: 12px 0; border-bottom: 1px solid var(--sand);
+  transition: color .2s;
+}
+.mobile-menu a:last-child { border-bottom: none; }
+.mobile-menu a:hover { color: var(--orange); }
 
-    /* ── Vol card grid ── */
-    .vol-head { display:flex; align-items:center; justify-content:flex-end; margin-bottom:10px; }
-    .preset-btn { font-size:12px; font-weight:600; color:#e8621a; border:1px solid #fcddc9; background:#fff5f0; border-radius:8px; padding:5px 10px; cursor:pointer; transition:background .15s; }
-    .preset-btn:hover { background:#ffe8d8; }
-    .vol-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
-    .vol-card { background:#f9f5f1; border-radius:10px; padding:12px 12px 10px; border:1px solid #ede5da; }
-    .vol-card.full { grid-column:1 / -1; }
-    .vol-card-top { display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:8px; gap:6px; }
-    .vol-card-label { font-size:12px; font-weight:700; line-height:1.3; flex:1; }
-    .vol-card-val { font-size:14px; font-weight:800; color:#e8621a; white-space:nowrap; }
-    .vol-card-val em { font-size:10px; font-style:normal; font-weight:600; color:#e8621a; }
-    input[type=range] { width:100%; -webkit-appearance:none; height:4px; border-radius:2px; background:#ddd8d0; outline:none; }
-    input[type=range]::-webkit-slider-thumb { -webkit-appearance:none; width:16px; height:16px; border-radius:50%; background:#e8621a; cursor:pointer; box-shadow:0 1px 4px rgba(0,0,0,.2); }
-    .vol-card-desc { font-size:10px; color:#999; line-height:1.35; margin-top:7px; }
-    .shape-note { font-size:11px; color:#777; line-height:1.5; margin-top:8px; padding:8px 10px; background:#f5f0ea; border-radius:8px; border-left:3px solid #e8621a; }
+/* ── Pages ────────────────────────────────────── */
+.page { display: none; padding-top: 62px; min-height: 100vh; }
+.page.active { display: block; }
 
-    /* Mat */
-    .mat-grid { display:flex; flex-direction:column; gap:7px; }
-    .mat-opt { border:2px solid #e5ddd4; border-radius:10px; padding:10px 12px; cursor:pointer; display:flex; align-items:center; gap:12px; transition:all .15s; }
-    .mat-opt:hover { border-color:#e8621a; background:#fff9f6; }
-    .mat-opt.active { border-color:#e8621a; background:#fff5f0; }
-    .mat-preview { width:44px; height:34px; border-radius:6px; flex-shrink:0; overflow:hidden; }
-    .mat-preview canvas { width:100%; height:100%; display:block; }
-    .mat-info h5 { font-size:13px; font-weight:700; }
-    .mat-info p  { font-size:11px; color:#888; }
+/* Page transition */
+.page.entering {
+  animation: pageIn .4s ease both;
+}
+@keyframes pageIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: none; }
+}
 
-    /* Drain */
-    .toggle-row { display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; }
-    .toggle-row label { font-size:13px; font-weight:500; }
-    .tog { width:38px; height:21px; border-radius:11px; background:#ccc; position:relative; cursor:pointer; transition:background .2s; }
-    .tog.on { background:#e8621a; }
-    .tog-thumb { width:17px; height:17px; background:#fff; border-radius:50%; position:absolute; top:2px; left:2px; transition:left .2s; box-shadow:0 1px 3px rgba(0,0,0,.2); }
-    .tog.on .tog-thumb { left:19px; }
-    .color-row { display:flex; gap:7px; flex-wrap:wrap; margin-top:4px; }
-    .cswatch { width:26px; height:26px; border-radius:50%; cursor:pointer; border:2px solid transparent; transition:border-color .15s,transform .1s; }
-    .cswatch.active, .cswatch:hover { border-color:#e8621a; transform:scale(1.15); }
+/* ── Shared ───────────────────────────────────── */
+.wrap {
+  max-width: 1240px; margin: 0 auto;
+  padding-left: clamp(16px,4vw,56px);
+  padding-right: clamp(16px,4vw,56px);
+}
+.label {
+  display: inline-flex; align-items: center; gap: 8px;
+  font-size: 11px; font-weight: 600; text-transform: uppercase;
+  letter-spacing: 2.5px; color: var(--orange); margin-bottom: 14px;
+}
+.label::before {
+  content: ''; display: block; width: 18px; height: 1.5px;
+  background: var(--orange);
+}
+.sec { padding: clamp(52px,8vw,100px) 0; }
 
-    /* Estimate */
-    .estimate { background:#fff5f0; border:1px solid #fcddc9; border-radius:10px; padding:12px 14px; margin-bottom:10px; }
-    .estimate .elabel { font-size:11px; color:#999; }
-    .estimate .eprice { font-size:24px; font-weight:800; color:#e8621a; line-height:1.1; }
-    .estimate .enote  { font-size:10px; color:#bbb; margin-top:2px; }
-    .cta-btn { width:100%; padding:14px; background:#e8621a; color:#fff; border:none; border-radius:10px; font-size:15px; font-weight:700; cursor:pointer; transition:background .15s; }
-    .cta-btn:hover { background:#c95415; }
-    .cta-next { width:100%; padding:12px; background:#1c1c1c; color:#fff; border:none; border-radius:10px; font-size:14px; font-weight:700; cursor:pointer; margin-top:12px; transition:background .15s; }
-    .cta-next:hover { background:#333; }
-    .step-info-note { font-size:11px; color:#888; line-height:1.5; margin-top:10px; padding:8px 0; border-top:1px solid #f0e9e0; }
+.btn-dark {
+  display: inline-block; font-size: 13.5px; font-weight: 600;
+  padding: 13px 30px; border-radius: 6px;
+  background: var(--dark); color: var(--white); border: none;
+  transition: background .2s, transform .15s;
+}
+.btn-dark:hover { background: var(--orange); transform: translateY(-2px); }
+.btn-ghost {
+  display: inline-block; font-size: 13.5px; font-weight: 600;
+  padding: 12px 28px; border-radius: 6px; border: 1.5px solid var(--sand);
+  color: var(--dark); background: transparent;
+  transition: border-color .2s, transform .15s;
+}
+.btn-ghost:hover { border-color: var(--dark); transform: translateY(-2px); }
+.btn-orange {
+  display: inline-block; font-size: 13.5px; font-weight: 600;
+  padding: 13px 30px; border-radius: 6px;
+  background: var(--orange); color: var(--white); border: none;
+  transition: filter .2s, transform .15s;
+}
+.btn-orange:hover { filter: brightness(1.1); transform: translateY(-2px); }
 
-    /* Material type tabs */
-    .mat-type-tabs { display:flex; gap:8px; margin-bottom:12px; }
-    .mat-type-tab { flex:1; padding:9px 6px; border-radius:10px; border:2px solid #e5ddd4; background:#fff; font-size:12px; font-weight:700; cursor:pointer; text-align:center; color:#666; transition:all .15s; line-height:1.3; }
-    .mat-type-tab:hover { border-color:#e8621a66; background:#faf6f2; }
-    .mat-type-tab.active { border-color:#e8621a; background:#fff5f0; color:#e8621a; }
-    /* Tigla color swatches */
-    .tigla-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:7px; }
-    .tigla-item { border:2px solid transparent; border-radius:10px; padding:8px 6px 7px; cursor:pointer; text-align:center; background:#fff; transition:border-color .15s; }
-    .tigla-item.active, .tigla-item:hover { border-color:#e8621a; background:#fff9f6; }
-    .tigla-swatch { width:48px; height:44px; border-radius:8px; margin:0 auto 5px; border:1px solid rgba(0,0,0,0.1); }
-    .tigla-name { font-size:10px; font-weight:600; color:#555; line-height:1.3; }
-    /* Sindrila photo swatches */
-    .shingle-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:6px; }
-    .shingle-item { border-radius:8px; overflow:hidden; cursor:pointer; border:2px solid transparent; transition:border-color .15s; }
-    .shingle-item.active, .shingle-item:hover { border-color:#e8621a; }
-    .shingle-thumb { width:100%; aspect-ratio:16/9; object-fit:cover; display:block; background:#e8e0d6; }
-    .shingle-name { font-size:9px; font-weight:600; padding:3px 5px; background:#fff; text-align:center; line-height:1.3; color:#444; }
+/* Fade-in on scroll */
+.reveal {
+  opacity: 0; transform: translateY(22px);
+  transition: opacity .65s ease, transform .65s ease;
+}
+.reveal.visible { opacity: 1; transform: none; }
 
-    /* ── Mobile-first responsive ── */
-    @media (max-width:900px) {
-      .configurator { flex-direction:column; padding:0 12px 32px; gap:12px; }
-      .config-panel { width:100%; }
-      .viewer-panel { position:static; }
-      #viewer-wrap { height:300px; }
-    }
-    @media (max-width:600px) {
-      body { font-size:14px; }
-      .site-header { padding:10px 16px; }
-      .top-prose { padding:20px 16px 10px; }
-      .top-prose h2 { font-size:18px; margin-bottom:14px; }
-      .feature-strip { display:none; } /* hide feature cards on small screens */
-      .configurator { padding:0 8px 24px; gap:8px; }
-      #viewer-wrap { height:260px; }
-      .viewer-badges { padding:7px 10px; gap:6px; }
-      .badge { font-size:11px; padding:4px 8px; }
-      .config-panel { gap:6px; }
-      .step-header { padding:12px 12px; }
-      .step-body { padding:0 12px 12px; }
-      .step-num { width:22px; height:22px; font-size:11px; }
-      .step-text h3 { font-size:13px; }
-      .vol-grid { grid-template-columns:1fr 1fr; gap:6px; }
-      .vol-card { padding:10px 10px 8px; }
-      .vol-card-label { font-size:11px; }
-      .vol-card-val { font-size:13px; }
-      .shape-grid { grid-template-columns:1fr 1fr; gap:6px; }
-      .shape-opt { padding:8px; }
-      .shape-ico { width:28px; height:28px; }
-      .tigla-grid, .shingle-grid { grid-template-columns:repeat(3,1fr); gap:5px; }
-      .mat-type-tabs { gap:6px; }
-      .mat-type-tab { padding:7px 4px; font-size:11px; }
-      .cta-btn { padding:13px; font-size:14px; }
-      .cta-next { padding:11px; font-size:13px; }
-      .toggle-row label { font-size:12px; }
-      .estimate .eprice { font-size:20px; }
-    }
-    @media (max-width:380px) {
-      #viewer-wrap { height:220px; }
-      .feature-strip { display:none; }
-      .badge { display:none; }
-      .badge:first-child { display:flex; }
-    }
+/* ── ACASĂ ────────────────────────────────────── */
+
+/* Hero */
+.hero {
+  min-height: calc(100vh - 62px);
+  display: grid; align-content: center;
+  position: relative; overflow: hidden;
+}
+.hero .wrap { padding-top: clamp(48px,8vw,80px); padding-bottom: clamp(48px,8vw,80px); }
+
+.hero-blob {
+  position: absolute; right: -100px; top: 5%;
+  width: min(600px, 50vw); height: 80%;
+  background: radial-gradient(ellipse at 60% 40%, #FFDCC9 0%, rgba(232,98,26,.06) 60%, transparent 80%);
+  border-radius: 50%; z-index: 0; pointer-events: none;
+}
+
+.hero-eyebrow {
+  font-size: 11.5px; font-weight: 600; text-transform: uppercase;
+  letter-spacing: 2.5px; color: var(--orange); margin-bottom: 22px;
+  opacity: 0; animation: fadeUp .6s ease .1s both;
+}
+.hero h1 {
+  font-family: var(--display); font-weight: 800;
+  font-size: clamp(42px, 7.5vw, 98px);
+  line-height: .98; letter-spacing: -3px;
+  max-width: 820px; margin-bottom: 26px;
+  opacity: 0; animation: fadeUp .7s ease .25s both;
+}
+.hero h1 em { color: var(--orange); font-style: normal; }
+.hero-sub {
+  font-size: clamp(15px,1.8vw,17px); font-weight: 300; color: var(--mid);
+  max-width: 440px; line-height: 1.75; margin-bottom: 38px;
+  opacity: 0; animation: fadeUp .7s ease .4s both;
+}
+.hero-actions {
+  display: flex; gap: 12px; flex-wrap: wrap;
+  opacity: 0; animation: fadeUp .7s ease .55s both;
+}
+
+/* Stats ribbon */
+.stats-ribbon { background: var(--dark); }
+.stats-inner {
+  max-width: 1240px; margin: 0 auto;
+  display: grid; grid-template-columns: repeat(3, 1fr);
+  padding: 0 clamp(16px,4vw,56px);
+}
+.stat {
+  padding: 36px 16px; text-align: center;
+  border-right: 1px solid rgba(255,255,255,.07);
+}
+.stat:last-child { border-right: none; }
+.stat-n {
+  font-family: var(--display); font-size: clamp(34px,4.5vw,54px);
+  font-weight: 800; color: var(--white); line-height: 1; margin-bottom: 5px;
+}
+.stat-n sup { color: var(--orange); font-size: .55em; vertical-align: top; margin-top: .2em; }
+.stat-l {
+  font-size: 11px; font-weight: 500; text-transform: uppercase;
+  letter-spacing: 1.5px; color: rgba(255,255,255,.38);
+}
+
+/* Configurator embed */
+.config-sec { background: var(--white); }
+.config-header {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 40px; align-items: end; margin-bottom: 36px;
+}
+.config-header h2 {
+  font-family: var(--display); font-size: clamp(26px,3.8vw,46px);
+  font-weight: 800; letter-spacing: -1.5px; line-height: 1.08;
+}
+.config-header p { font-size: 15px; font-weight: 300; color: var(--mid); line-height: 1.75; }
+.config-frame {
+  border-radius: 14px; overflow: hidden;
+  border: 1px solid var(--sand);
+  height: clamp(420px, 60vh, 700px);
+  box-shadow: 0 8px 40px rgba(26,23,20,.06);
+}
+.config-frame iframe { width: 100%; height: 100%; border: none; display: block; }
+
+/* Why section */
+.why-grid {
+  display: grid; grid-template-columns: repeat(3, 1fr);
+  gap: 2px; background: var(--sand); border-radius: 12px; overflow: hidden;
+}
+.why-card {
+  background: var(--bg); padding: 38px 30px;
+  transition: background .2s;
+}
+.why-card:hover { background: var(--white); }
+.why-icon {
+  width: 40px; height: 40px; color: var(--orange); margin-bottom: 18px;
+}
+.why-card h3 {
+  font-family: var(--display); font-size: 17px; font-weight: 700;
+  margin-bottom: 9px; line-height: 1.25;
+}
+.why-card p { font-size: 14px; font-weight: 300; color: var(--mid); line-height: 1.7; }
+
+/* CTA strip */
+.cta-strip {
+  background: var(--orange);
+  padding: clamp(44px,6vw,68px) clamp(16px,4vw,56px);
+}
+.cta-strip-inner {
+  max-width: 1240px; margin: 0 auto;
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 28px; flex-wrap: wrap;
+}
+.cta-strip h2 {
+  font-family: var(--display); font-size: clamp(22px,3.5vw,40px);
+  font-weight: 800; color: var(--white); letter-spacing: -.5px;
+  line-height: 1.1; max-width: 540px;
+}
+.btn-white {
+  display: inline-block; font-size: 13.5px; font-weight: 600;
+  padding: 13px 30px; border-radius: 6px;
+  background: var(--white); color: var(--orange); border: none;
+  transition: transform .15s; white-space: nowrap;
+}
+.btn-white:hover { transform: translateY(-2px); }
+
+/* ── SERVICII ─────────────────────────────────── */
+.page-head {
+  padding: clamp(48px,7vw,80px) 0 clamp(28px,4vw,48px);
+  border-bottom: 1px solid var(--sand);
+}
+.page-head h1 {
+  font-family: var(--display); font-size: clamp(36px,6.5vw,74px);
+  font-weight: 800; letter-spacing: -2.5px; line-height: .98;
+  margin-bottom: 14px;
+}
+.page-head p { font-size: 16px; font-weight: 300; color: var(--mid); max-width: 440px; line-height: 1.7; }
+
+.services-grid {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px;
+  margin-top: 48px;
+}
+.svc-card {
+  background: var(--card); border: 1.5px solid var(--sand);
+  border-radius: 12px; padding: 30px 26px;
+  transition: border-color .2s, transform .25s, box-shadow .25s;
+}
+.svc-card:hover {
+  border-color: var(--orange); transform: translateY(-4px);
+  box-shadow: 0 16px 36px rgba(232,98,26,.09);
+}
+.svc-n {
+  font-family: var(--display); font-size: 38px; font-weight: 800;
+  color: var(--sand); line-height: 1; margin-bottom: 14px;
+}
+.svc-card h3 {
+  font-family: var(--display); font-size: 19px; font-weight: 700;
+  margin-bottom: 10px; line-height: 1.2;
+}
+.svc-card p { font-size: 14px; font-weight: 300; color: var(--mid); line-height: 1.7; margin-bottom: 18px; }
+.svc-tag {
+  font-size: 10.5px; font-weight: 600; text-transform: uppercase; letter-spacing: 1.5px;
+  color: var(--orange); border: 1.5px solid currentColor; padding: 3px 10px; border-radius: 20px;
+  display: inline-block;
+}
+
+/* Process */
+.process-wrap { margin-top: 80px; }
+.process-wrap h2 {
+  font-family: var(--display); font-size: clamp(24px,3.5vw,36px);
+  font-weight: 800; letter-spacing: -1px; margin-bottom: 40px;
+}
+.process-steps {
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 0;
+  position: relative;
+}
+.process-steps::before {
+  content: ''; position: absolute; top: 20px;
+  left: calc(12.5% + 8px); right: calc(12.5% + 8px);
+  height: 1px; background: var(--sand); z-index: 0;
+}
+.p-step { text-align: center; padding: 0 12px; position: relative; }
+.p-dot {
+  width: 40px; height: 40px; border-radius: 50%;
+  background: var(--bg); border: 2px solid var(--sand);
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--display); font-size: 14px; font-weight: 800; color: var(--dark);
+  margin: 0 auto 16px; position: relative; z-index: 1;
+  transition: background .2s, border-color .2s, color .2s;
+}
+.p-step:hover .p-dot { background: var(--orange); border-color: var(--orange); color: var(--white); }
+.p-step h4 { font-size: 13.5px; font-weight: 600; margin-bottom: 6px; }
+.p-step p { font-size: 12.5px; color: var(--mid); line-height: 1.6; }
+
+/* ── PORTOFOLIU ───────────────────────────────── */
+.filter-row {
+  display: flex; gap: 8px; flex-wrap: wrap;
+  padding: clamp(20px,3vw,32px) 0;
+}
+.filter-btn {
+  font-size: 13px; font-weight: 500;
+  padding: 8px 18px; border-radius: 24px;
+  border: 1.5px solid var(--sand); background: transparent;
+  color: var(--mid); transition: all .2s;
+}
+.filter-btn.active, .filter-btn:hover {
+  border-color: var(--dark); background: var(--dark); color: var(--white);
+}
+
+.portfolio-grid {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px;
+  padding-bottom: clamp(52px,8vw,100px);
+}
+.port-card {
+  background: var(--card); border-radius: 10px; overflow: hidden;
+  border: 1px solid var(--sand);
+  transition: transform .25s, box-shadow .25s; cursor: pointer;
+}
+.port-card:hover { transform: translateY(-4px); box-shadow: 0 16px 36px rgba(26,23,20,.09); }
+.port-card:nth-child(3n+2) { margin-top: 22px; }
+.port-thumb {
+  width: 100%; aspect-ratio: 4/3; overflow: hidden;
+  display: flex; align-items: center; justify-content: center;
+}
+.port-thumb-inner {
+  width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;
+}
+.port-thumb-label {
+  font-family: var(--display); font-size: 10px; font-weight: 700;
+  letter-spacing: 2px; text-transform: uppercase; color: rgba(26,23,20,.25);
+}
+.port-info { padding: 16px 18px; }
+.port-type {
+  font-size: 10.5px; font-weight: 600; text-transform: uppercase;
+  letter-spacing: 1.5px; color: var(--orange); margin-bottom: 5px;
+}
+.port-name { font-family: var(--display); font-size: 15px; font-weight: 700; margin-bottom: 3px; }
+.port-loc { font-size: 12px; color: var(--mid); }
+
+/* ── DESPRE ───────────────────────────────────── */
+.about-duo {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 72px; align-items: center;
+}
+.about-img {
+  aspect-ratio: 3/4; border-radius: 12px;
+  background: linear-gradient(145deg, #EDE6DD 0%, #C4A884 100%);
+  position: relative; overflow: hidden;
+}
+.about-badge {
+  position: absolute; bottom: 20px; left: 20px;
+  background: var(--white); border-radius: 8px; padding: 12px 16px;
+  display: flex; align-items: center; gap: 12px; max-width: 180px;
+  box-shadow: 0 8px 24px rgba(26,23,20,.12);
+}
+.about-badge strong { font-family: var(--display); font-size: 28px; color: var(--orange); line-height: 1; }
+.about-badge span { font-size: 11px; color: var(--mid); line-height: 1.45; }
+.about-content h2 {
+  font-family: var(--display); font-size: clamp(26px,3.8vw,44px);
+  font-weight: 800; letter-spacing: -1.5px; line-height: 1.08; margin-bottom: 18px;
+}
+.about-content p { font-size: 15px; font-weight: 300; color: var(--mid); line-height: 1.8; margin-bottom: 14px; }
+
+.values-sec { background: var(--white); }
+.values-grid {
+  display: grid; grid-template-columns: repeat(2, 1fr);
+  gap: 2px; background: var(--sand); border-radius: 12px; overflow: hidden;
+  margin-top: 40px;
+}
+.val-card { background: var(--bg); padding: 28px 24px; }
+.val-num {
+  font-family: var(--display); font-size: 40px; font-weight: 800;
+  color: var(--sand); line-height: 1; margin-bottom: 8px;
+}
+.val-card h4 { font-size: 14px; font-weight: 600; margin-bottom: 6px; }
+.val-card p { font-size: 13px; color: var(--mid); line-height: 1.65; }
+
+.team-grid {
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; margin-top: 40px;
+}
+.team-card { text-align: center; }
+.team-av {
+  width: 100%; aspect-ratio: 1; border-radius: 10px; margin-bottom: 12px; overflow: hidden;
+}
+.team-card h4 { font-size: 14px; font-weight: 600; margin-bottom: 3px; }
+.team-card span { font-size: 12px; color: var(--mid); }
+
+/* ── CONTACT ──────────────────────────────────── */
+.contact-layout {
+  display: grid; grid-template-columns: 1.15fr 1fr; gap: 64px; align-items: start;
+}
+.contact-form-wrap {
+  background: var(--white); padding: 36px 32px; border-radius: 12px;
+  border: 1px solid var(--sand); box-shadow: 0 4px 20px rgba(26,23,20,.04);
+}
+.contact-form-wrap h2 {
+  font-family: var(--display); font-size: clamp(22px,2.5vw,30px);
+  font-weight: 800; letter-spacing: -1px; margin-bottom: 24px;
+}
+.fgroup { margin-bottom: 18px; }
+.fgroup label {
+  display: block; font-size: 11px; font-weight: 600; text-transform: uppercase;
+  letter-spacing: 1px; color: var(--mid); margin-bottom: 7px;
+}
+.fgroup input, .fgroup textarea, .fgroup select {
+  width: 100%; font-family: var(--body); font-size: 14px; color: var(--dark);
+  background: var(--bg); border: 1.5px solid var(--sand); border-radius: 8px;
+  padding: 11px 13px; outline: none; transition: border-color .2s; -webkit-appearance: none; appearance: none;
+}
+.fgroup textarea { height: 110px; resize: vertical; }
+.fgroup input:focus, .fgroup textarea:focus, .fgroup select:focus { border-color: var(--orange); }
+.frow { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+
+.contact-info-col { padding-top: 4px; }
+.contact-info-col h2 {
+  font-family: var(--display); font-size: clamp(24px,3vw,38px);
+  font-weight: 800; letter-spacing: -1px; line-height: 1.1; margin-bottom: 10px;
+}
+.contact-info-col > p { font-size: 15px; font-weight: 300; color: var(--mid); line-height: 1.75; margin-bottom: 32px; }
+.c-detail { display: flex; gap: 14px; align-items: flex-start; margin-bottom: 22px; }
+.c-icon {
+  width: 40px; height: 40px; border-radius: 8px; background: var(--orange-soft);
+  display: flex; align-items: center; justify-content: center;
+  color: var(--orange); flex-shrink: 0;
+}
+.c-icon svg { width: 18px; height: 18px; }
+.c-text strong { display: block; font-size: 12.5px; font-weight: 600; margin-bottom: 2px; }
+.c-text span { font-size: 14px; color: var(--mid); }
+.map-ph {
+  margin-top: 28px; height: 180px; border-radius: 10px;
+  background: linear-gradient(135deg, #E8E2D8, #C4B8A8);
+  border: 1px solid var(--sand);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13px; color: var(--mid);
+}
+
+/* ── FOOTER ───────────────────────────────────── */
+footer { background: var(--dark); padding: clamp(40px,6vw,64px) 0 0; }
+.footer-grid {
+  max-width: 1240px; margin: 0 auto;
+  padding: 0 clamp(16px,4vw,56px);
+  display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 48px;
+  padding-bottom: 48px;
+}
+.ft-brand-name { font-family: var(--display); font-size: 20px; font-weight: 800; color: var(--white); margin-bottom: 10px; }
+.ft-brand-name em { color: var(--orange); font-style: normal; }
+.ft-brand-desc { font-size: 13px; color: rgba(255,255,255,.38); line-height: 1.7; max-width: 220px; }
+.ft-col h5 {
+  font-size: 10.5px; font-weight: 600; text-transform: uppercase;
+  letter-spacing: 2px; color: rgba(255,255,255,.32); margin-bottom: 14px;
+}
+.ft-col a {
+  display: block; font-size: 13px; color: rgba(255,255,255,.58);
+  margin-bottom: 9px; transition: color .2s;
+}
+.ft-col a:hover { color: var(--white); }
+.footer-bottom {
+  max-width: 1240px; margin: 0 auto;
+  padding: 18px clamp(16px,4vw,56px);
+  border-top: 1px solid rgba(255,255,255,.07);
+  display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;
+}
+.footer-bottom p { font-size: 12px; color: rgba(255,255,255,.26); }
+
+/* ── Animations ───────────────────────────────── */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(18px); }
+  to   { opacity: 1; transform: none; }
+}
+
+/* ── Responsive ───────────────────────────────── */
+@media (max-width: 900px) {
+  .nav-links, .nav-btn { display: none; }
+  .hamburger { display: flex; }
+  .hero h1 { letter-spacing: -2px; }
+  .config-header { grid-template-columns: 1fr; gap: 14px; }
+  .why-grid { grid-template-columns: 1fr; }
+  .footer-grid { grid-template-columns: 1fr 1fr; gap: 32px; }
+  .portfolio-grid { grid-template-columns: 1fr 1fr; }
+  .port-card:nth-child(3n+2) { margin-top: 0; }
+  .services-grid { grid-template-columns: 1fr 1fr; }
+  .process-steps { grid-template-columns: 1fr 1fr; }
+  .process-steps::before { display: none; }
+  .contact-layout { grid-template-columns: 1fr; }
+  .about-duo { grid-template-columns: 1fr; gap: 36px; }
+  .about-img { aspect-ratio: 16/9; }
+  .team-grid { grid-template-columns: repeat(2, 1fr); }
+  .values-grid { grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 600px) {
+  .stats-inner { grid-template-columns: 1fr; }
+  .stat { border-right: none; border-bottom: 1px solid rgba(255,255,255,.07); }
+  .stat:last-child { border-bottom: none; }
+  .portfolio-grid { grid-template-columns: 1fr; }
+  .services-grid { grid-template-columns: 1fr; }
+  .process-steps { grid-template-columns: 1fr 1fr; }
+  .cta-strip-inner { flex-direction: column; }
+  .footer-grid { grid-template-columns: 1fr; gap: 28px; }
+  .values-grid { grid-template-columns: 1fr; }
+  .team-grid { grid-template-columns: 1fr 1fr; }
+  .frow { grid-template-columns: 1fr; }
+  .about-duo { gap: 24px; }
+  .contact-form-wrap { padding: 24px 18px; }
+}
   </style>
 </head>
 <body>
 
-<header class="site-header">
-  <div class="logo">Dikon<span>Sa</span> <span style="font-weight:400;color:#888">Coperișuri</span></div>
-</header>
-
-<div class="top-prose">
-  <h2>Află cât te costă acoperișul,<br>la doar <em>câteva click-uri distanță.</em></h2>
+<!-- NAV -->
+<nav id="nav">
+  <a class="nav-logo" href="#" onclick="go('acasa');return false;">Dikon<em>Sa</em> <span style="font-weight:400;color:var(--mid)">Coperișuri</span></a>
+  <ul class="nav-links" id="nav-links">
+    <li><a href="#" onclick="go('acasa');return false;" data-page="acasa" class="active">Acasă</a></li>
+    <li><a href="#" onclick="go('servicii');return false;" data-page="servicii">Servicii</a></li>
+    <li><a href="#" onclick="go('portofoliu');return false;" data-page="portofoliu">Portofoliu</a></li>
+    <li><a href="#" onclick="go('despre');return false;" data-page="despre">Despre</a></li>
+    <li><a href="#" onclick="go('contact');return false;" data-page="contact">Contact</a></li>
+  </ul>
+  <button class="nav-btn" onclick="go('contact')">Solicită ofertă</button>
+  <button class="hamburger" id="ham" onclick="toggleMenu()" aria-label="Meniu">
+    <span></span><span></span><span></span>
+  </button>
+</nav>
+<div class="mobile-menu" id="mob-menu">
+  <a href="#" onclick="go('acasa');toggleMenu();return false;">Acasă</a>
+  <a href="#" onclick="go('servicii');toggleMenu();return false;">Servicii</a>
+  <a href="#" onclick="go('portofoliu');toggleMenu();return false;">Portofoliu</a>
+  <a href="#" onclick="go('despre');toggleMenu();return false;">Despre</a>
+  <a href="#" onclick="go('contact');toggleMenu();return false;">Contact</a>
 </div>
 
-<div class="feature-strip">
-  <div class="feat-card"><h4>4 forme comparabile</h4><p>Casă simplă în 2 sau 4 pante, plus formele L și T, în același configurator.</p></div>
-  <div class="feat-card"><h4>2 tipuri, 14 nuanțe</h4><p>Țiglă Modulară (6 nuanțe) și Sindrila Bituminoasă (8 nuanțe), cu texturi reale aplicate pe model.</p></div>
-  <div class="feat-card"><h4>Sistem de scurgere inclus</h4><p>Poți activa rapid sistemul de scurgere, iar configurația ajunge direct în cererea ta.</p></div>
+<!-- ════════════════ ACASĂ ════════════════ -->
+<div class="page active" id="page-acasa">
+
+  <section class="hero">
+    <div class="hero-blob"></div>
+    <div class="wrap" style="position:relative;z-index:1">
+      <p class="hero-eyebrow">Specialist în acoperișuri · Republica Moldova</p>
+      <h1>Acoperișuri<br>care <em>durează.</em></h1>
+      <p class="hero-sub">De la proiect la montaj final — soluții complete pentru acoperișul casei tale, cu materiale europene și garanție de 10 ani.</p>
+      <div class="hero-actions">
+        <a class="btn-dark" href="#" onclick="go('contact');return false;">Solicită ofertă gratuită</a>
+        <a class="btn-ghost" href="#" onclick="go('portofoliu');return false;">Vezi portofoliu →</a>
+      </div>
+    </div>
+  </section>
+
+  <div class="stats-ribbon">
+    <div class="stats-inner">
+      <div class="stat reveal">
+        <div class="stat-n">127<sup>+</sup></div>
+        <div class="stat-l">Proiecte finalizate</div>
+      </div>
+      <div class="stat reveal">
+        <div class="stat-n">15<sup>ani</sup></div>
+        <div class="stat-l">Experiență în domeniu</div>
+      </div>
+      <div class="stat reveal">
+        <div class="stat-n">4.9<sup>★</sup></div>
+        <div class="stat-l">Ratingul clienților</div>
+      </div>
+    </div>
+  </div>
+
+  <section class="config-sec sec">
+    <div class="wrap">
+      <div class="config-header reveal">
+        <div>
+          <div class="label">Configurator 3D</div>
+          <h2>Vizualizează acoperișul<br>tău în timp real.</h2>
+        </div>
+        <p>Alege forma, materialul și culoarea dorită. Obții instant o estimare de preț și o configurație gata de trimis echipei noastre.</p>
+      </div>
+      <div class="config-frame reveal">
+        <iframe src="configurator.html" title="Configurator 3D Acoperiș" loading="lazy"></iframe>
+      </div>
+    </div>
+  </section>
+
+  <section class="sec">
+    <div class="wrap">
+      <div class="label reveal">De ce DikonSa?</div>
+      <div class="why-grid reveal">
+        <div class="why-card">
+          <svg class="why-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          <h3>Garanție extinsă</h3>
+          <p>10 ani garanție pentru montaj, 25 de ani pentru materiale. Lucrăm exclusiv cu producători certificați CE, importați direct.</p>
+        </div>
+        <div class="why-card">
+          <svg class="why-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          <h3>Execuție rapidă</h3>
+          <p>Un acoperiș standard în 3–7 zile lucrătoare. Respectăm termenele stabilite, fără întârzieri sau surprize neplăcute în costul final.</p>
+        </div>
+        <div class="why-card">
+          <svg class="why-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"/></svg>
+          <h3>Echipă certificată</h3>
+          <p>Toți montatorii dețin atestat tehnic și urmează cursuri anuale de perfecționare. Siguranța la lucru și calitatea sunt non-negociabile.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="cta-strip">
+    <div class="cta-strip-inner">
+      <h2>Pregătit să începi<br>proiectul tău?</h2>
+      <a class="btn-white" href="#" onclick="go('contact');return false;">Contactează-ne acum →</a>
+    </div>
+  </div>
+
+  <footer>
+    <div class="footer-grid">
+      <div>
+        <div class="ft-brand-name">Dikon<em>Sa</em></div>
+        <p class="ft-brand-desc">Montaj și renovare acoperișuri în Republica Moldova, de la material la montaj complet.</p>
+      </div>
+      <div class="ft-col">
+        <h5>Pagini</h5>
+        <a href="#" onclick="go('acasa');return false;">Acasă</a>
+        <a href="#" onclick="go('servicii');return false;">Servicii</a>
+        <a href="#" onclick="go('portofoliu');return false;">Portofoliu</a>
+        <a href="#" onclick="go('despre');return false;">Despre noi</a>
+        <a href="#" onclick="go('contact');return false;">Contact</a>
+      </div>
+      <div class="ft-col">
+        <h5>Servicii</h5>
+        <a href="#">Montaj acoperiș</a>
+        <a href="#">Renovare acoperiș</a>
+        <a href="#">Termoizolație</a>
+        <a href="#">Sisteme scurgere</a>
+        <a href="#">Consultanță</a>
+      </div>
+      <div class="ft-col">
+        <h5>Contact</h5>
+        <a href="tel:+37369123456">+373 69 123 456</a>
+        <a href="mailto:office@dikonsacoperisuri.md">office@dikonsacoperisuri.md</a>
+        <a href="#">Chișinău, Moldova</a>
+        <a href="#">Lun–Vin 8:00–18:00</a>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>© 2025 DikonSa Coperișuri. Toate drepturile rezervate.</p>
+      <p style="color:rgba(255,255,255,.18)">Construit cu grijă în Moldova.</p>
+    </div>
+  </footer>
 </div>
 
-<div class="configurator">
-
-  <div class="viewer-panel">
-    <div class="viewer-badges">
-      <span class="badge">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#e8621a" stroke-width="2.5"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
-        Model interactiv
-      </span>
-      <span class="badge">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#e8621a" stroke-width="2.5"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
-        Volumetrie reglabilă
-      </span>
-      <span class="badge">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#e8621a" stroke-width="2.5"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
-        Scurgere și efecte
-      </span>
+<!-- ════════════════ SERVICII ════════════════ -->
+<div class="page" id="page-servicii">
+  <section class="page-head sec">
+    <div class="wrap">
+      <div class="label">Ce oferim</div>
+      <h1>Servicii<br>complete.</h1>
+      <p>De la o consultație gratuită până la predarea cheilor — gestionăm fiecare etapă a proiectului tău.</p>
     </div>
-    <div id="viewer-wrap"><canvas id="roof-canvas"></canvas></div>
-    <div class="viewer-note">Modelul este orientativ și te ajută să compari forma casei, materialul și estimarea generală înainte de oferta finală.</div>
+  </section>
+
+  <section class="sec" style="padding-top:32px">
+    <div class="wrap">
+      <div class="services-grid">
+        <div class="svc-card reveal">
+          <div class="svc-n">01</div>
+          <h3>Montaj acoperiș nou</h3>
+          <p>Construim acoperișuri de la zero — gableuri, hip-uri, forme în L și T. Folosim materiale certificate și structuri calculate static.</p>
+          <span class="svc-tag">Nou</span>
+        </div>
+        <div class="svc-card reveal">
+          <div class="svc-n">02</div>
+          <h3>Renovare și reparație</h3>
+          <p>Diagnosticăm acoperișurile existente, înlocuim zonele deteriorate și asigurăm impermeabilizare completă fără demolări inutile.</p>
+          <span class="svc-tag">Renovare</span>
+        </div>
+        <div class="svc-card reveal">
+          <div class="svc-n">03</div>
+          <h3>Termoizolație</h3>
+          <p>Soluții de izolație termică cu vată minerală sau polistiren extrudat, care reduc consumul energetic al casei cu până la 35%.</p>
+          <span class="svc-tag">Eficiență</span>
+        </div>
+        <div class="svc-card reveal">
+          <div class="svc-n">04</div>
+          <h3>Sisteme de scurgere</h3>
+          <p>Montăm jgheaburi și burlane din aluminiu sau oțel vopsit, cu garanție anticoroziune. Calculăm debitele pentru orice suprafață.</p>
+          <span class="svc-tag">Scurgere</span>
+        </div>
+        <div class="svc-card reveal">
+          <div class="svc-n">05</div>
+          <h3>Consultanță tehnică</h3>
+          <p>Venind pe șantier sau analizând planurile tale, oferim sfaturi tehnice oneste — fără costuri ascunse sau soluții supradimensionate.</p>
+          <span class="svc-tag">Consultanță</span>
+        </div>
+        <div class="svc-card reveal">
+          <div class="svc-n">06</div>
+          <h3>Garanție și service</h3>
+          <p>Post-montaj, rămânem disponibili. Inspecții anuale gratuite, intervenții rapide la eventuale probleme, tot în baza contractului.</p>
+          <span class="svc-tag">Post-vânzare</span>
+        </div>
+      </div>
+
+      <div class="process-wrap reveal">
+        <h2>Cum funcționează procesul?</h2>
+        <div class="process-steps">
+          <div class="p-step">
+            <div class="p-dot">1</div>
+            <h4>Consultație</h4>
+            <p>Discutăm nevoile tale gratuit, telefonic sau la fața locului.</p>
+          </div>
+          <div class="p-step">
+            <div class="p-dot">2</div>
+            <h4>Ofertă detaliată</h4>
+            <p>Primești 3 variante de preț: Standard, Premium și VIP.</p>
+          </div>
+          <div class="p-step">
+            <div class="p-dot">3</div>
+            <h4>Execuție</h4>
+            <p>Echipa intervine la data stabilită, cu materiale pregătite.</p>
+          </div>
+          <div class="p-step">
+            <div class="p-dot">4</div>
+            <h4>Predare & garanție</h4>
+            <p>Semnăm procesul verbal și activăm garanția contractuală.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="cta-strip">
+    <div class="cta-strip-inner">
+      <h2>Ai un proiect în minte?<br>Discutăm gratuit.</h2>
+      <a class="btn-white" href="#" onclick="go('contact');return false;">Solicită consultație →</a>
+    </div>
   </div>
 
-  <div class="config-panel">
+  <footer>
+    <div class="footer-grid">
+      <div><div class="ft-brand-name">Dikon<em>Sa</em></div><p class="ft-brand-desc">Montaj și renovare acoperișuri în Republica Moldova.</p></div>
+      <div class="ft-col"><h5>Pagini</h5><a href="#" onclick="go('acasa');return false;">Acasă</a><a href="#" onclick="go('servicii');return false;">Servicii</a><a href="#" onclick="go('portofoliu');return false;">Portofoliu</a><a href="#" onclick="go('despre');return false;">Despre</a><a href="#" onclick="go('contact');return false;">Contact</a></div>
+      <div class="ft-col"><h5>Servicii</h5><a href="#">Montaj acoperiș</a><a href="#">Renovare</a><a href="#">Termoizolație</a><a href="#">Sisteme scurgere</a></div>
+      <div class="ft-col"><h5>Contact</h5><a href="tel:+37369123456">+373 69 123 456</a><a href="mailto:office@dikonsacoperisuri.md">office@dikonsacoperisuri.md</a><a href="#">Chișinău, Moldova</a></div>
+    </div>
+    <div class="footer-bottom"><p>© 2025 DikonSa Coperișuri.</p></div>
+  </footer>
+</div>
 
-    <!-- Step 1 -->
-    <div class="step open" id="step1">
-      <div class="step-header" onclick="toggleStep(1)">
-        <div class="step-left">
-          <div class="step-num">1</div>
-          <div class="step-text"><h3>Forma Acoperișului</h3><p id="sub1">Casă simplă - 2 pante</p></div>
-        </div>
-        <div class="step-toggle">▾</div>
-      </div>
-      <div class="step-body">
-        <div class="shape-grid">
-          <div class="shape-opt active" onclick="selectShape('2pante',this)">
-            <div class="shape-ico"><svg viewBox="0 0 24 24" fill="none" stroke="#e8621a" stroke-width="2"><polygon points="2,18 12,5 22,18"/><line x1="2" y1="18" x2="22" y2="18"/></svg></div>
-            <div class="shape-text"><h5>Casă simplă - 2 pante</h5><p>Volum dreptunghiular de referință, cu coamă simplă</p></div>
-          </div>
-          <div class="shape-opt" onclick="selectShape('4pante',this)">
-            <div class="shape-ico"><svg viewBox="0 0 24 24" fill="none" stroke="#e8621a" stroke-width="2"><polygon points="12,4 22,18 2,18"/><line x1="7" y1="18" x2="12" y2="9"/><line x1="17" y1="18" x2="12" y2="9"/></svg></div>
-            <div class="shape-text"><h5>Casă simplă - 4 pante</h5><p>Acoperiș compact, cu 4 ape și volum echilibrat</p></div>
-          </div>
-          <div class="shape-opt" onclick="selectShape('L',this)">
-            <div class="shape-ico"><svg viewBox="0 0 24 24" fill="none" stroke="#e8621a" stroke-width="2"><path d="M3 3 L3 21 L13 21 L13 13 L21 13 L21 3 Z"/></svg></div>
-            <div class="shape-text"><h5>Casă în L</h5><p>Formă compusă, setată automat pe 4 pante</p></div>
-          </div>
-          <div class="shape-opt" onclick="selectShape('T',this)">
-            <div class="shape-ico"><svg viewBox="0 0 24 24" fill="none" stroke="#e8621a" stroke-width="2"><path d="M2 4 L22 4 L22 11 L14 11 L14 20 L10 20 L10 11 L2 11 Z"/></svg></div>
-            <div class="shape-text"><h5>Casă în T</h5><p>Formă compusă, setată automat pe 4 pante</p></div>
-          </div>
-        </div>
-      </div>
+<!-- ════════════════ PORTOFOLIU ════════════════ -->
+<div class="page" id="page-portofoliu">
+  <section class="page-head sec">
+    <div class="wrap">
+      <div class="label">Lucrările noastre</div>
+      <h1>Portofoliu.</h1>
+      <p>127+ proiecte finalizate în toată Moldova — case individuale, imobile și spații industriale.</p>
+    </div>
+  </section>
+
+  <div class="wrap">
+    <div class="filter-row" id="filter-row">
+      <button class="filter-btn active" onclick="filterPort('toate', this)">Toate</button>
+      <button class="filter-btn" onclick="filterPort('rezidential', this)">Rezidențial</button>
+      <button class="filter-btn" onclick="filterPort('industrial', this)">Industrial</button>
+      <button class="filter-btn" onclick="filterPort('renovare', this)">Renovare</button>
+      <button class="filter-btn" onclick="filterPort('comercial', this)">Comercial</button>
     </div>
 
-    <!-- Step 2 — Volumetrie card grid -->
-    <div class="step" id="step2">
-      <div class="step-header" onclick="toggleStep(2)">
-        <div class="step-left">
-          <div class="step-num">2</div>
-          <div class="step-text"><h3>Ajustează Volumetria</h3><p id="sub2">12.0 × 8.0 m · streașină 0.5 m</p></div>
-        </div>
-        <div class="step-toggle">›</div>
-      </div>
-      <div class="step-body">
-        <div class="vol-head">
-          <button class="preset-btn" onclick="resetPreset()">↩ Revino la preset</button>
-        </div>
-        <div class="vol-grid">
-          <!-- Main body -->
-          <div class="vol-card">
-            <div class="vol-card-top">
-              <span class="vol-card-label">Lățime corp<br>principal</span>
-              <span class="vol-card-val" id="vMainW">12.0 <em>m</em></span>
-            </div>
-            <input type="range" id="slMainW" min="4" max="20" step="0.1" value="12" oninput="onVol()">
-            <p class="vol-card-desc">Controlează corpul principal pe axa frontală.</p>
-          </div>
-          <div class="vol-card">
-            <div class="vol-card-top">
-              <span class="vol-card-label">Adâncime corp<br>principal</span>
-              <span class="vol-card-val" id="vMainD">8.0 <em>m</em></span>
-            </div>
-            <input type="range" id="slMainD" min="4" max="20" step="0.1" value="8" oninput="onVol()">
-            <p class="vol-card-desc">Definește cât de compact sau alungit este volumul principal.</p>
-          </div>
-          <!-- Wing — hidden for 2/4 pante -->
-          <div class="vol-card" id="wingWCard" style="display:none">
-            <div class="vol-card-top">
-              <span class="vol-card-label">Lățime aripă<br>secundară</span>
-              <span class="vol-card-val" id="vWingW">5.0 <em>m</em></span>
-            </div>
-            <input type="range" id="slWingW" min="2" max="14" step="0.1" value="5.0" oninput="onVol()">
-            <p class="vol-card-desc">Disponibil doar pentru formele în L și T.</p>
-          </div>
-          <div class="vol-card" id="wingDCard" style="display:none">
-            <div class="vol-card-top">
-              <span class="vol-card-label">Lungime aripă<br>secundară</span>
-              <span class="vol-card-val" id="vWingD">10.0 <em>m</em></span>
-            </div>
-            <input type="range" id="slWingD" min="2" max="20" step="0.1" value="10.0" oninput="onVol()">
-            <p class="vol-card-desc">Controlează cât de mult se prelungește volumul secundar.</p>
-          </div>
-          <!-- Streașină — full width -->
-          <div class="vol-card full">
-            <div class="vol-card-top">
-              <span class="vol-card-label">Streașina<br>acoperișului</span>
-              <span class="vol-card-val" id="vOverhang">0.5 <em>m</em></span>
-            </div>
-            <input type="range" id="slOverhang" min="0" max="1.5" step="0.05" value="0.5" oninput="onVol()">
-            <p class="vol-card-desc">Controlează cât depășește acoperișul peretele exterior.</p>
-          </div>
-        </div>
-        <div id="shapeNote" class="shape-note" style="display:none">
-          Forma în L unește corpul principal cu o aripă laterală. Aici apare o dolie și o intersecție de acoperiș care trebuie urmărită atent la montaj.
-        </div>
-        <p class="step-info-note" id="shapeInfoNote">Forma simplă folosește doar corpul principal. Acesta rămâne referința pentru comparația cu geometriile în L și T.</p>
-        <button class="cta-next" onclick="toggleStep(3)">Continuă la material →</button>
-      </div>
+    <div class="portfolio-grid" id="port-grid">
+      <!-- Cards generated by JS -->
     </div>
-
-    <!-- Step 3 -->
-    <div class="step" id="step3">
-      <div class="step-header" onclick="toggleStep(3)">
-        <div class="step-left">
-          <div class="step-num">3</div>
-          <div class="step-text"><h3>Material &amp; Culoare</h3><p id="sub3">Sindrila Bituminoasă · Black Sable</p></div>
-        </div>
-        <div class="step-toggle">›</div>
-      </div>
-      <div class="step-body">
-        <div class="mat-type-tabs" id="matTypeTabs"></div>
-        <div id="matColorGrid"></div>
-      </div>
-    </div>
-
-    <!-- Step 4 -->
-    <div class="step" id="step4">
-      <div class="step-header" onclick="toggleStep(4)">
-        <div class="step-left">
-          <div class="step-num">4</div>
-          <div class="step-text"><h3>Sistem de Scurgere</h3><p id="sub4">Dezactivat</p></div>
-        </div>
-        <div class="step-toggle">›</div>
-      </div>
-      <div class="step-body">
-        <div class="toggle-row">
-          <label>Activează sistem de scurgere</label>
-          <div class="tog" id="drainToggle" onclick="toggleDrain()"><div class="tog-thumb"></div></div>
-        </div>
-        <div id="drainColors" style="display:none">
-          <p style="font-size:12px;color:#888;margin-bottom:6px;">Culoare burlane &amp; jgheaburi</p>
-          <div class="color-row">
-            <div class="cswatch active" style="background:#5a5a5a" onclick="selectDrainColor('#5a5a5a',this)"></div>
-            <div class="cswatch" style="background:#8b7355" onclick="selectDrainColor('#8b7355',this)"></div>
-            <div class="cswatch" style="background:#c0c0c0" onclick="selectDrainColor('#c0c0c0',this)"></div>
-            <div class="cswatch" style="background:#8b0000" onclick="selectDrainColor('#8b0000',this)"></div>
-            <div class="cswatch" style="background:#1a3a1a" onclick="selectDrainColor('#1a3a1a',this)"></div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Step 5 -->
-    <div class="step" id="step5">
-      <div class="step-header" onclick="toggleStep(5)">
-        <div class="step-left">
-          <div class="step-num">5</div>
-          <div class="step-text"><h3>Trimite Configurația</h3><p>Primești oferta în 24h</p></div>
-        </div>
-        <div class="step-toggle">›</div>
-      </div>
-      <div class="step-body">
-        <div class="estimate">
-          <div class="elabel">Estimare orientativă</div>
-          <div class="eprice" id="estimatePrice">— lei</div>
-          <div class="enote">Prețul final depinde de acces, pantă reală și cantitate exactă de material</div>
-        </div>
-        <button class="cta-btn" onclick="sendConfig()">Solicită oferta gratuită →</button>
-      </div>
-    </div>
-
   </div>
+
+  <footer>
+    <div class="footer-grid">
+      <div><div class="ft-brand-name">Dikon<em>Sa</em></div><p class="ft-brand-desc">Montaj și renovare acoperișuri în Republica Moldova.</p></div>
+      <div class="ft-col"><h5>Pagini</h5><a href="#" onclick="go('acasa');return false;">Acasă</a><a href="#" onclick="go('servicii');return false;">Servicii</a><a href="#" onclick="go('portofoliu');return false;">Portofoliu</a><a href="#" onclick="go('despre');return false;">Despre</a><a href="#" onclick="go('contact');return false;">Contact</a></div>
+      <div class="ft-col"><h5>Servicii</h5><a href="#">Montaj acoperiș</a><a href="#">Renovare</a><a href="#">Termoizolație</a></div>
+      <div class="ft-col"><h5>Contact</h5><a href="tel:+37369123456">+373 69 123 456</a><a href="mailto:office@dikonsacoperisuri.md">office@dikonsacoperisuri.md</a></div>
+    </div>
+    <div class="footer-bottom"><p>© 2025 DikonSa Coperișuri.</p></div>
+  </footer>
+</div>
+
+<!-- ════════════════ DESPRE ════════════════ -->
+<div class="page" id="page-despre">
+  <section class="sec">
+    <div class="wrap">
+      <div class="label reveal">Cine suntem</div>
+      <div class="about-duo">
+        <div class="about-img reveal">
+          <div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;opacity:.25">
+            <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+          </div>
+          <div class="about-badge">
+            <strong>2010</strong>
+            <span>Fondată în Moldova</span>
+          </div>
+        </div>
+        <div class="about-content reveal">
+          <div class="label">Povestea noastră</div>
+          <h2>15 ani de<br>acoperișuri solide.</h2>
+          <p>DikonSa Coperișuri a fost fondată în 2010 de o echipă de meșteri cu experiență în montaj și construcții. Viziunea noastră a fost simplă: să oferim Moldovei acoperișuri de calitate europeană la prețuri accesibile.</p>
+          <p>Astăzi, cu peste 127 de proiecte finalizate și o echipă de 18 profesioniști, suntem unul dintre furnizorii de încredere din regiune — atât pentru case individuale, cât și pentru proiecte comerciale și industriale.</p>
+          <a class="btn-dark" href="#" onclick="go('contact');return false;" style="margin-top:16px">Hai să colaborăm</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="values-sec sec">
+    <div class="wrap">
+      <div class="label reveal">Valorile noastre</div>
+      <div class="values-grid reveal">
+        <div class="val-card">
+          <div class="val-num">01</div>
+          <h4>Calitate fără compromis</h4>
+          <p>Folosim exclusiv materiale certificate european. Nu tăiem colțuri — nu la calitate.</p>
+        </div>
+        <div class="val-card">
+          <div class="val-num">02</div>
+          <h4>Transparență totală</h4>
+          <p>Oferta detaliată înainte de orice decizie. Prețul final = prețul din contract.</p>
+        </div>
+        <div class="val-card">
+          <div class="val-num">03</div>
+          <h4>Respect față de client</h4>
+          <p>Comunicăm clar, răspundem prompt, respectăm proprietatea și termenele.</p>
+        </div>
+        <div class="val-card">
+          <div class="val-num">04</div>
+          <h4>Responsabilitate post-montaj</h4>
+          <p>Nu dispărem după predare. Suntem disponibili pe toată durata garanției.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="sec" style="background:var(--white)">
+    <div class="wrap">
+      <div class="label reveal">Echipa</div>
+      <div class="team-grid reveal">
+        <div class="team-card">
+          <div class="team-av" style="background:linear-gradient(135deg,#EDE6DD,#C4A884)"></div>
+          <h4>Andrei Dikon</h4><span>Fondator & Director</span>
+        </div>
+        <div class="team-card">
+          <div class="team-av" style="background:linear-gradient(135deg,#DDE6ED,#84A4C4)"></div>
+          <h4>Mihai Savescu</h4><span>Șef echipă montaj</span>
+        </div>
+        <div class="team-card">
+          <div class="team-av" style="background:linear-gradient(135deg,#EDDEED,#C484C4)"></div>
+          <h4>Elena Botnaru</h4><span>Relații clienți</span>
+        </div>
+        <div class="team-card">
+          <div class="team-av" style="background:linear-gradient(135deg,#E6EDD8,#A4C484)"></div>
+          <h4>Vasile Ciorici</h4><span>Inginer proiectant</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="cta-strip">
+    <div class="cta-strip-inner">
+      <h2>Vrei să faci parte<br>din echipa noastră?</h2>
+      <a class="btn-white" href="#" onclick="go('contact');return false;">Trimite CV →</a>
+    </div>
+  </div>
+
+  <footer>
+    <div class="footer-grid">
+      <div><div class="ft-brand-name">Dikon<em>Sa</em></div><p class="ft-brand-desc">Montaj și renovare acoperișuri în Republica Moldova.</p></div>
+      <div class="ft-col"><h5>Pagini</h5><a href="#" onclick="go('acasa');return false;">Acasă</a><a href="#" onclick="go('servicii');return false;">Servicii</a><a href="#" onclick="go('portofoliu');return false;">Portofoliu</a><a href="#" onclick="go('despre');return false;">Despre</a><a href="#" onclick="go('contact');return false;">Contact</a></div>
+      <div class="ft-col"><h5>Servicii</h5><a href="#">Montaj acoperiș</a><a href="#">Renovare</a><a href="#">Termoizolație</a></div>
+      <div class="ft-col"><h5>Contact</h5><a href="tel:+37369123456">+373 69 123 456</a><a href="mailto:office@dikonsacoperisuri.md">office@dikonsacoperisuri.md</a></div>
+    </div>
+    <div class="footer-bottom"><p>© 2025 DikonSa Coperișuri.</p></div>
+  </footer>
+</div>
+
+<!-- ════════════════ CONTACT ════════════════ -->
+<div class="page" id="page-contact">
+  <section class="sec">
+    <div class="wrap">
+      <div class="label reveal">Hai să vorbim</div>
+      <div class="contact-layout">
+
+        <div class="contact-form-wrap reveal">
+          <h2>Solicită ofertă</h2>
+          <form onsubmit="submitForm(event)">
+            <div class="frow">
+              <div class="fgroup"><label>Prenume</label><input type="text" placeholder="Ion" required></div>
+              <div class="fgroup"><label>Nume</label><input type="text" placeholder="Popescu" required></div>
+            </div>
+            <div class="fgroup"><label>Email</label><input type="email" placeholder="ion@mail.md" required></div>
+            <div class="fgroup"><label>Telefon</label><input type="tel" placeholder="+373 69 000 000"></div>
+            <div class="fgroup">
+              <label>Tipul proiectului</label>
+              <select>
+                <option value="">Alege tipul...</option>
+                <option>Acoperiș nou — casă individuală</option>
+                <option>Renovare acoperiș existent</option>
+                <option>Proiect comercial / industrial</option>
+                <option>Termoizolație</option>
+                <option>Sistem de scurgere</option>
+                <option>Altele / Consultanță</option>
+              </select>
+            </div>
+            <div class="fgroup"><label>Mesaj</label><textarea placeholder="Descrie pe scurt proiectul tău — suprafața estimată, locația, urgența..."></textarea></div>
+            <button type="submit" class="btn-orange" style="width:100%;text-align:center">Trimite mesajul →</button>
+          </form>
+        </div>
+
+        <div class="contact-info-col reveal">
+          <div class="label">Date de contact</div>
+          <h2>Suntem aici<br>pentru tine.</h2>
+          <p>Răspundem în maximum 2 ore în zilele lucrătoare. Poți să ne suni, să ne scrii pe email sau să completezi formularul.</p>
+
+          <div class="c-detail">
+            <div class="c-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg></div>
+            <div class="c-text"><strong>Telefon</strong><span>+373 69 123 456</span></div>
+          </div>
+          <div class="c-detail">
+            <div class="c-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg></div>
+            <div class="c-text"><strong>Email</strong><span>office@dikonsacoperisuri.md</span></div>
+          </div>
+          <div class="c-detail">
+            <div class="c-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg></div>
+            <div class="c-text"><strong>Adresă</strong><span>Chișinău, Republica Moldova</span></div>
+          </div>
+          <div class="c-detail">
+            <div class="c-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg></div>
+            <div class="c-text"><strong>Program</strong><span>Lun–Vin: 8:00–18:00<br>Sâm: 9:00–14:00</span></div>
+          </div>
+
+          <div class="map-ph">📍 Hartă Google Maps</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <div class="footer-grid">
+      <div><div class="ft-brand-name">Dikon<em>Sa</em></div><p class="ft-brand-desc">Montaj și renovare acoperișuri în Republica Moldova.</p></div>
+      <div class="ft-col"><h5>Pagini</h5><a href="#" onclick="go('acasa');return false;">Acasă</a><a href="#" onclick="go('servicii');return false;">Servicii</a><a href="#" onclick="go('portofoliu');return false;">Portofoliu</a><a href="#" onclick="go('despre');return false;">Despre</a><a href="#" onclick="go('contact');return false;">Contact</a></div>
+      <div class="ft-col"><h5>Servicii</h5><a href="#">Montaj acoperiș</a><a href="#">Renovare</a><a href="#">Termoizolație</a></div>
+      <div class="ft-col"><h5>Contact</h5><a href="tel:+37369123456">+373 69 123 456</a><a href="mailto:office@dikonsacoperisuri.md">office@dikonsacoperisuri.md</a></div>
+    </div>
+    <div class="footer-bottom"><p>© 2025 DikonSa Coperișuri.</p></div>
+  </footer>
 </div>
 
 <script>
-// ═══════════════════════════════════════════
-//  STATE
-// ═══════════════════════════════════════════
-var PRESET = { mainW:12.0, mainD:8.0, wingW:5.0, wingD:10.0, overhang:0.5 };
-var S = {
-  shape: '2pante',
-  mainW: 12.0, mainD: 8.0,
-  wingW: 5.0, wingD: 10.0,
-  overhang: 0.5,
-  wallH: 3.0,
-  matType: 'sindrila',
-  matColor: 'black-sable',
-  drainage: false, drainColor: '#5a5a5a'
-};
+/* ── Portfolio data ──────────────────── */
+var PROJECTS = [
+  {type:'rezidential', name:'Vila Buiucani',       loc:'Chișinău, sector Buiucani', color:'linear-gradient(135deg,#EDE6DD,#C4A884)'},
+  {type:'industrial',  name:'Hală industrială',    loc:'Strășeni, R. Moldova',       color:'linear-gradient(135deg,#D8E6DD,#84A4C4)'},
+  {type:'rezidential', name:'Casă în Cricova',     loc:'Cricova, R. Moldova',         color:'linear-gradient(135deg,#EDE8DD,#C4B884)'},
+  {type:'renovare',    name:'Bloc Centru',          loc:'Chișinău, Centru',            color:'linear-gradient(135deg,#E6DDE8,#B484C4)'},
+  {type:'rezidential', name:'Duplex Botanica',      loc:'Chișinău, Botanica',          color:'linear-gradient(135deg,#DDEAE6,#84C4B0)'},
+  {type:'comercial',   name:'Showroom auto',        loc:'Bălți, R. Moldova',           color:'linear-gradient(135deg,#EAE6DD,#C4B884)'},
+  {type:'rezidential', name:'Casă Ialoveni',        loc:'Ialoveni, R. Moldova',        color:'linear-gradient(135deg,#DDE8EA,#84B4C4)'},
+  {type:'renovare',    name:'Școală Orhei',         loc:'Orhei, R. Moldova',           color:'linear-gradient(135deg,#E8DDDE,#C4848A)'},
+  {type:'industrial',  name:'Depozit logistic',     loc:'Chișinău, Ciocana',           color:'linear-gradient(135deg,#E6EAE0,#A0C490)'},
+];
 
-// ═══════════════════════════════════════════
-//  MATERIAL CATALOGUE
-// ═══════════════════════════════════════════
-var MAT_CATALOG = {
-  tigla: {
-    label: 'Țiglă Modulară',
-    colors: [
-      { id:'tigla-gri',      name:'Gri Ardeziat',   h:0,   s:0,  lo:20, hi:38, tint:0x909090 },
-      { id:'tigla-rosu',     name:'Roșu Cărămiziu', h:10,  s:55, lo:22, hi:40, tint:0xb04428 },
-      { id:'tigla-maro',     name:'Maro Natural',   h:25,  s:40, lo:18, hi:35, tint:0x7c5030 },
-      { id:'tigla-negru',    name:'Negru Mat',       h:0,   s:0,  lo:8,  hi:18, tint:0x343434 },
-      { id:'tigla-verde',    name:'Verde Închis',   h:140, s:35, lo:16, hi:30, tint:0x3c5c3c },
-      { id:'tigla-teracota', name:'Teracotă',       h:18,  s:65, lo:28, hi:48, tint:0xbc5230 },
-    ]
-  },
-  sindrila: {
-    label: 'Sindrila Bituminoasă',
-    colors: [
-      { id:'driftwood',    name:'Driftwood',     file:'trudefinition-duration-driftwood.jpg',                    tint:0x7a6650 },
-      { id:'cool-sand',    name:'Sand Castle',   file:'trudefinition-duration-cool-sand-castle.jpg',             tint:0xa09070 },
-      { id:'black-sable',  name:'Black Sable',   file:'trudefinition-duration-designer-black-sable.jpg',         tint:0x262626 },
-      { id:'bourbon',      name:'Bourbon',       file:'trudefinition-duration-designer-bourbon.jpg',             tint:0x6a3c22 },
-      { id:'merlot',       name:'Merlot',        file:'trudefinition-duration-designer-merlot.jpg',              tint:0x5c2430 },
-      { id:'sedona-canyon',name:'Sedona Canyon', file:'trudefinition-duration-designer-sedona-canyon.jpg',       tint:0x8c4830 },
-      { id:'storm-cloud',  name:'Storm Cloud',   file:'trudefinition-duration-designer-storm-cloud.jpg',         tint:0x4a5060 },
-      { id:'aged-cedar',   name:'Aged Cedar',    file:'oakridge-aged-cedar.jpg',                                 tint:0x6e4c30 },
-    ]
-  }
-};
-
-function findColor(type, id) {
-  var cols = MAT_CATALOG[type] ? MAT_CATALOG[type].colors : [];
-  for (var i=0; i<cols.length; i++) { if (cols[i].id===id) return cols[i]; }
-  return null;
-}
-function tiglaSwatchCSS(c) { return 'hsl('+c.h+','+c.s+'%,'+((c.lo+c.hi)/2)+'%)'; }
-
-// ═══════════════════════════════════════════
-//  THREE.JS
-// ═══════════════════════════════════════════
-window.addEventListener('load', function () {
-
-  var wrap   = document.getElementById('viewer-wrap');
-  var canvas = document.getElementById('roof-canvas');
-
-  var renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true });
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-  renderer.shadowMap.enabled = true;
-  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-  renderer.toneMapping = THREE.ACESFilmicToneMapping;
-  renderer.toneMappingExposure = 1.25;
-
-  function sz() { return { w: wrap.clientWidth, h: wrap.clientHeight }; }
-  var s0 = sz();
-  renderer.setSize(s0.w, s0.h);
-
-  var scene = new THREE.Scene();
-  scene.background = new THREE.Color(0xf0ebe0);
-  scene.fog = new THREE.Fog(0xf0ebe0, 40, 90);
-
-  var camera = new THREE.PerspectiveCamera(40, s0.w / s0.h, 0.1, 200);
-
-  // Lights — sun from front-right for specular highlight on front slope
-  scene.add(new THREE.HemisphereLight(0xfff4e0, 0x88aa66, 1.4));
-  var sun = new THREE.DirectionalLight(0xfff6f0, 2.2);
-  sun.position.set(10, 22, -14);  // front-right → specular on front slope visible to camera
-  sun.castShadow = true;
-  sun.shadow.mapSize.set(2048, 2048);
-  Object.assign(sun.shadow.camera, { near:1, far:80, left:-30, right:30, top:30, bottom:-30 });
-  sun.shadow.bias = -0.001;
-  scene.add(sun);
-  var fill = new THREE.DirectionalLight(0xd4e8ff, 0.7);
-  fill.position.set(-14, 10, 12); scene.add(fill);
-
-  // Ground
-  var ground = new THREE.Mesh(
-    new THREE.PlaneGeometry(80, 80),
-    new THREE.MeshLambertMaterial({ color: 0xbad49a })
-  );
-  ground.rotation.x = -Math.PI / 2;
-  ground.receiveShadow = true;
-  scene.add(ground);
-
-  // ── Orbit ──────────────────────────────────────────────
-  var orb = { theta: -0.5, phi: 0.95, radius: 32, tx:0, ty:2.5, tz:0 };
-  function orbCam() {
-    camera.position.set(
-      orb.tx + orb.radius * Math.sin(orb.phi) * Math.sin(orb.theta),
-      orb.ty + orb.radius * Math.cos(orb.phi),
-      orb.tz + orb.radius * Math.sin(orb.phi) * Math.cos(orb.theta)
-    );
-    camera.lookAt(orb.tx, orb.ty, orb.tz);
-  }
-  orbCam();
-
-  // ── Orbit controls — mouse + touch ────────────────────
-  var drag=false, lx=0, ly=0;
-  canvas.addEventListener('mousedown', function(e){ drag=true; lx=e.clientX; ly=e.clientY; });
-  window.addEventListener('mouseup',   function(){ drag=false; });
-  canvas.addEventListener('mousemove', function(e){
-    if (!drag) return;
-    orb.theta -= (e.clientX-lx)*0.008;
-    orb.phi = Math.max(0.15, Math.min(1.45, orb.phi-(e.clientY-ly)*0.008));
-    lx=e.clientX; ly=e.clientY; orbCam();
-  });
-  canvas.addEventListener('wheel', function(e){
-    orb.radius = Math.max(6, Math.min(50, orb.radius+e.deltaY*0.04));
-    orbCam(); e.preventDefault();
-  }, {passive:false});
-
-  // Touch: single-finger rotate, two-finger pinch zoom
-  // touch-action:none on canvas handles preventDefault at CSS level — no JS preventDefault needed
-  var tPos = {}, tPinchDist = 0;
-  canvas.addEventListener('touchstart', function(e){
-    Array.from(e.changedTouches).forEach(function(t){ tPos[t.identifier]={x:t.clientX,y:t.clientY}; });
-    if (e.touches.length === 2) {
-      tPinchDist = Math.hypot(
-        e.touches[0].clientX-e.touches[1].clientX,
-        e.touches[0].clientY-e.touches[1].clientY
-      );
-    }
-  }, {passive:true});
-  canvas.addEventListener('touchend', function(e){
-    Array.from(e.changedTouches).forEach(function(t){ delete tPos[t.identifier]; });
-    if (e.touches.length < 2) tPinchDist = 0;
-  }, {passive:true});
-  canvas.addEventListener('touchmove', function(e){
-    if (e.touches.length === 1) {
-      var t = e.touches[0], prev = tPos[t.identifier];
-      if (prev) {
-        orb.theta -= (t.clientX-prev.x)*0.010;
-        orb.phi = Math.max(0.15, Math.min(1.45, orb.phi-(t.clientY-prev.y)*0.010));
-        orbCam();
-      }
-      tPos[t.identifier] = {x:t.clientX, y:t.clientY};
-    } else if (e.touches.length === 2) {
-      var dist = Math.hypot(
-        e.touches[0].clientX-e.touches[1].clientX,
-        e.touches[0].clientY-e.touches[1].clientY
-      );
-      if (tPinchDist > 0) {
-        orb.radius = Math.max(6, Math.min(50, orb.radius-(dist-tPinchDist)*0.04));
-        orbCam();
-      }
-      tPinchDist = dist;
-      Array.from(e.changedTouches).forEach(function(t){ tPos[t.identifier]={x:t.clientX,y:t.clientY}; });
-    }
-  }, {passive:true});
-
-  window.addEventListener('resize', function(){
-    var s=sz(); renderer.setSize(s.w,s.h); camera.aspect=s.w/s.h; camera.updateProjectionMatrix();
-  });
-
-  // ── Canvas tile texture (Tigla Modulara) ───────────────
-  function drawTileCanvas(ctx, w, h, cs) {
-    var nC=7, nR=6, tW=w/nC, tH=h/nR;
-    ctx.fillStyle='hsl('+cs.h+','+cs.s+'%,'+(cs.lo-3)+'%)';
-    ctx.fillRect(0,0,w,h);
-    for (var r=0; r<nR+2; r++) {
-      var oy=r*tH, ox=(r%2)*(tW/2);
-      for (var c=-1; c<nC+2; c++) {
-        var ox2=c*tW+ox, lv=((r*3+c*7)%5)-2;
-        var mid=(cs.lo+cs.hi)/2+lv;
-        ctx.fillStyle='hsl('+cs.h+','+cs.s+'%,'+mid+'%)';
-        ctx.fillRect(ox2+1.5, oy+1.5, tW-3, tH-3);
-        var sg=ctx.createLinearGradient(0,oy+tH-5,0,oy+tH);
-        sg.addColorStop(0,'rgba(0,0,0,0)'); sg.addColorStop(1,'rgba(0,0,0,0.35)');
-        ctx.fillStyle=sg; ctx.fillRect(ox2+1.5,oy+tH-5,tW-3,5);
-        ctx.fillStyle='rgba(255,255,255,0.15)';
-        ctx.fillRect(ox2+1.5,oy+1.5,tW-3,2.5);
-      }
-    }
-  }
-  function makeTileTex(cs) {
-    var cv=document.createElement('canvas'); cv.width=cv.height=512;
-    drawTileCanvas(cv.getContext('2d'),512,512,cs);
-    var t=new THREE.CanvasTexture(cv); t.wrapS=t.wrapT=THREE.RepeatWrapping; return t;
-  }
-
-  // ── Texture cache ──────────────────────────────────────
-  var TEXS = {};
-  // Canvas fallback textures for tigla (used until PBR maps load)
-  MAT_CATALOG.tigla.colors.forEach(function(cs) { TEXS[cs.id] = makeTileTex(cs); });
-  var TL = new THREE.TextureLoader();
-  window._TEXS = TEXS;
-  window._TL   = TL;
-
-  // ── PBR maps loader (shared helper) ────────────────────
-  function loadPbrMaps(baseDir, prefix, maps, onAllLoaded) {
-    var loaded = 0;
-    var pairs = [
-      ['color',  prefix+'_Color.jpg'],
-      ['normal', prefix+'_NormalGL.jpg'],
-      ['rough',  prefix+'_Roughness.jpg']
-    ];
-    var tl = new THREE.TextureLoader();
-    pairs.forEach(function(pair) {
-      tl.load(baseDir+pair[1], function(t) {
-        t.wrapS = t.wrapT = THREE.RepeatWrapping;
-        maps[pair[0]] = t;
-        if (++loaded === 3) onAllLoaded();
-      });
-    });
-  }
-
-  // Țiglă Modulară — RoofingTiles013A
-  var TIGLA_MAPS = { color: null, normal: null, rough: null };
-  window._TIGLA_MAPS = TIGLA_MAPS;
-  loadPbrMaps('tex/tigla/', 'RoofingTiles013A_1K-JPG', TIGLA_MAPS, function() {
-    if (S.matType === 'tigla' && window._rebuild) window._rebuild();
-  });
-
-  // Sindrila Bituminoasă — WoodSiding012
-  var SINDRILA_MAPS = { color: null, normal: null, rough: null };
-  window._SINDRILA_MAPS = SINDRILA_MAPS;
-  loadPbrMaps('tex/sindrila/', 'WoodSiding012_1K-JPG', SINDRILA_MAPS, function() {
-    if (S.matType === 'sindrila' && window._rebuild) window._rebuild();
-  });
-
-  // ── Geometry builder ───────────────────────────────────
-  function GeoBuilder() { this.p=[]; this.n=[]; this.u=[]; this.i=[]; }
-  GeoBuilder.prototype.norm = function(a,b,c) {
-    var ax=b[0]-a[0],ay=b[1]-a[1],az=b[2]-a[2];
-    var bx=c[0]-a[0],by=c[1]-a[1],bz=c[2]-a[2];
-    var nx=ay*bz-az*by, ny=az*bx-ax*bz, nz=ax*by-ay*bx;
-    var l=Math.sqrt(nx*nx+ny*ny+nz*nz)||1;
-    return [nx/l,ny/l,nz/l];
-  };
-  GeoBuilder.prototype.quad = function(p0,p1,p2,p3,uMax,vMax) {
-    var n=this.norm(p0,p1,p3), b=this.p.length/3;
-    [p0,p1,p2,p3].forEach(function(p){this.p.push(p[0],p[1],p[2]);},this);
-    this.u.push(0,0, uMax,0, uMax,vMax, 0,vMax);
-    for(var i=0;i<4;i++) this.n.push(n[0],n[1],n[2]);
-    this.i.push(b,b+1,b+2, b,b+2,b+3);
-  };
-  GeoBuilder.prototype.tri = function(p0,p1,p2,uv0,uv1,uv2) {
-    var n=this.norm(p0,p1,p2), b=this.p.length/3;
-    [p0,p1,p2].forEach(function(p){this.p.push(p[0],p[1],p[2]);},this);
-    [uv0,uv1,uv2].forEach(function(u){this.u.push(u[0],u[1]);},this);
-    for(var i=0;i<3;i++) this.n.push(n[0],n[1],n[2]);
-    this.i.push(b,b+1,b+2);
-  };
-  GeoBuilder.prototype.build = function() {
-    var g=new THREE.BufferGeometry();
-    g.setAttribute('position',new THREE.Float32BufferAttribute(this.p,3));
-    g.setAttribute('normal',  new THREE.Float32BufferAttribute(this.n,3));
-    g.setAttribute('uv',      new THREE.Float32BufferAttribute(this.u,2));
-    g.setIndex(this.i);
-    return g;
-  };
-
-  // UV helpers — tigla tiles slightly denser than sindrila shingles
-  function uvU(d) { return d / (S.matType==='tigla' ? 2.1 : 2.0); }
-  function uvV(s) { return s / 1.5; }
-
-  function gableGeo(W,D,wH,rH,ov) {
-    var gb=new GeoBuilder(), hw=W/2+ov, hd=D/2+ov, ry=wH, py=wH+rH;
-    var sL=Math.sqrt(hw*hw+rH*rH), uS=uvU(hd*2), vS=uvV(sL);
-    gb.quad([-hw,ry,-hd],[-hw,ry,hd],[0,py,hd],[0,py,-hd],uS,vS);
-    gb.quad([hw,ry,hd],[hw,ry,-hd],[0,py,-hd],[0,py,hd],uS,vS);
-    gb.tri([hw,ry,-hd],[-hw,ry,-hd],[0,py,-hd],[0,0],[1,0],[0.5,1]);
-    gb.tri([-hw,ry,hd],[hw,ry,hd],[0,py,hd],[0,0],[1,0],[0.5,1]);
-    return gb.build();
-  }
-
-  function hipGeo(W,D,wH,rH,ov) {
-    var gb=new GeoBuilder(), hw=W/2+ov, hd=D/2+ov, ry=wH, py=wH+rH;
-    var rz=Math.max(0.2,hd-hw), uS=uvU(hd*2), vS=uvV(Math.sqrt(hw*hw+rH*rH));
-    gb.quad([-hw,ry,-hd],[-hw,ry,hd],[0,py,rz],[0,py,-rz],uS,vS);
-    gb.quad([hw,ry,hd],[hw,ry,-hd],[0,py,-rz],[0,py,rz],uS,vS);
-    gb.tri([hw,ry,-hd],[-hw,ry,-hd],[0,py,-rz],[0,0],[1,0],[0.5,1]);
-    gb.tri([-hw,ry,hd],[hw,ry,hd],[0,py,rz],[0,0],[1,0],[0.5,1]);
-    return gb.build();
-  }
-
-  // ── Materials ──────────────────────────────────────────
-  function roofMat() {
-    if (S.matType === 'tigla') {
-      var col = findColor('tigla', S.matColor);
-      var tint = col ? col.tint : 0x888888;
-      var hasPBR = TIGLA_MAPS.color && TIGLA_MAPS.normal && TIGLA_MAPS.rough;
-      return new THREE.MeshStandardMaterial({
-        map:          hasPBR ? TIGLA_MAPS.color  : (TEXS[S.matColor] || null),
-        normalMap:    hasPBR ? TIGLA_MAPS.normal : null,
-        normalScale:  new THREE.Vector2(1.5, 1.5),
-        roughnessMap: hasPBR ? TIGLA_MAPS.rough  : null,
-        color:        hasPBR ? tint : 0xffffff,
-        roughness:    0.82,
-        metalness:    0.0,
-        side:         THREE.DoubleSide
-      });
-    }
-    // sindrila — PBR WoodSiding012 + per-color tint
-    var col2 = findColor('sindrila', S.matColor);
-    var tint2 = col2 ? col2.tint : 0x888888;
-    var hasPBR2 = SINDRILA_MAPS.color && SINDRILA_MAPS.normal && SINDRILA_MAPS.rough;
-    return new THREE.MeshStandardMaterial({
-      map:          hasPBR2 ? SINDRILA_MAPS.color  : (TEXS[S.matColor] || null),
-      normalMap:    hasPBR2 ? SINDRILA_MAPS.normal : null,
-      normalScale:  new THREE.Vector2(1.2, 1.2),
-      roughnessMap: hasPBR2 ? SINDRILA_MAPS.rough  : null,
-      color:        hasPBR2 ? tint2 : 0xffffff,
-      roughness:    0.55,
-      metalness:    0.05,
-      side:         THREE.DoubleSide
-    });
-  }
-
-  function wallMat() {
-    return new THREE.MeshStandardMaterial({ color:0xf4f0ea, roughness:0.6, metalness:0 });
-  }
-
-  // ── House ──────────────────────────────────────────────
-  var houseGroup = null;
-
-  function disposeGroup(g) {
-    g.traverse(function(o){
-      if (o.geometry) o.geometry.dispose();
-      if (o.material) { var m=o.material; if(Array.isArray(m)) m.forEach(function(x){x.dispose();}); else m.dispose(); }
-    });
-  }
-
-  function addWinDoor(bw, bd, wH, px, pz, group) {
-    var wMat = new THREE.MeshStandardMaterial({ color:0xfcf8f3, roughness:0.45 });
-    var gMat = new THREE.MeshStandardMaterial({ color:0x9bbcce, roughness:0.05, metalness:0.12, transparent:true, opacity:0.68 });
-    var dMat = new THREE.MeshStandardMaterial({ color:0x6b3318, roughness:0.75 });
-    var fZ   = pz - bd/2 - 0.06;  // 6 cm in front of front wall
-    var wY   = wH * 0.57;
-    var ox   = Math.min(bw * 0.28, bw/2 - 0.95);
-
-    // Door frame + panel
-    var df = new THREE.Mesh(new THREE.BoxGeometry(1.04, 2.2, 0.13), wMat);
-    df.position.set(px, 1.1, fZ); df.castShadow=true; group.add(df);
-    var dp = new THREE.Mesh(new THREE.BoxGeometry(0.9, 2.1, 0.1), dMat);
-    dp.position.set(px, 1.05, fZ - 0.04); group.add(dp); // 4cm in front of frame → visible
-
-
-    // Front windows (if wide enough)
-    if (bw > 3.5) {
-      [-ox, ox].forEach(function(dx) {
-        var wf = new THREE.Mesh(new THREE.BoxGeometry(1.24, 1.17, 0.13), wMat);
-        wf.position.set(px+dx, wY, fZ); wf.castShadow=true; group.add(wf);
-        var wg = new THREE.Mesh(new THREE.BoxGeometry(1.1, 1.05, 0.1), gMat);
-        wg.position.set(px+dx, wY, fZ); group.add(wg);
-      });
-    }
-
-    // Side windows (one per side wall)
-    [[px - bw/2 - 0.06, pz], [px + bw/2 + 0.06, pz]].forEach(function(pos) {
-      var sf = new THREE.Mesh(new THREE.BoxGeometry(0.13, 1.07, 1.14), wMat);
-      sf.position.set(pos[0], wY, pos[1]); sf.castShadow=true; group.add(sf);
-      var sg = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.95, 1.0), gMat);
-      sg.position.set(pos[0], wY, pos[1]); group.add(sg);
-    });
-  }
-
-  function addBox(bw,bd,px,pz,group,skipDetails) {
-    var wH=S.wallH;
-    var m=new THREE.Mesh(new THREE.BoxGeometry(bw,wH,bd), wallMat());
-    m.position.set(px,wH/2,pz); m.castShadow=m.receiveShadow=true; group.add(m);
-    if (!skipDetails) addWinDoor(bw, bd, wH, px, pz, group);
-  }
-
-  function addRoof(geo,px,pz,group) {
-    var m=new THREE.Mesh(geo, roofMat());
-    m.position.set(px,0,pz); m.castShadow=m.receiveShadow=true; group.add(m);
-  }
-  // addRoofY: same but rotated 90° around Y so ridge runs along X (slope faces front)
-  function addRoofY(geo,px,pz,group) {
-    var m=new THREE.Mesh(geo, roofMat());
-    m.position.set(px,0,pz); m.rotation.y=Math.PI/2; m.castShadow=m.receiveShadow=true; group.add(m);
-  }
-
-  function addGutters(bw,bd,px,pz,group) {
-    if (!S.drainage) return;
-    var gm=new THREE.MeshLambertMaterial({color:new THREE.Color(S.drainColor)});
-    var gr=0.065, ey=S.wallH-0.06, hw=bw/2+S.overhang-0.06, hd=bd/2+S.overhang-0.06;
-    [-hd+pz, hd+pz].forEach(function(z){
-      var m=new THREE.Mesh(new THREE.CylinderGeometry(gr,gr,bw+S.overhang*2,8),gm);
-      m.rotation.z=Math.PI/2; m.position.set(px,ey,z); group.add(m);
-    });
-    [[-hw,-hd],[hw,-hd],[-hw,hd],[hw,hd]].forEach(function(c){
-      var m=new THREE.Mesh(new THREE.CylinderGeometry(0.04,0.04,S.wallH+0.1,8),gm);
-      m.position.set(c[0]+px,(S.wallH+0.1)/2,c[1]+pz); group.add(m);
-    });
-  }
-
-  function ridgeH(W) { return W * 0.22; }  // ~24° pitch
-
-  function buildHouse() {
-    if (houseGroup) { disposeGroup(houseGroup); scene.remove(houseGroup); }
-    houseGroup = new THREE.Group();
-    var mW=S.mainW, mD=S.mainD, wW=S.wingW, wD=S.wingD, ov=S.overhang, wH=S.wallH;
-    // platFootprints: list of {w,d,px,pz} used to build the shape-specific foundation
-    var platFootprints = [];
-
-    if (S.shape === '2pante') {
-      platFootprints = [{w:mW, d:mD, px:0, pz:0}];
-      addBox(mW,mD,0,0,houseGroup);
-      addRoofY(gableGeo(mD,mW,wH,ridgeH(mD),ov),0,0,houseGroup);
-      addGutters(mW,mD,0,0,houseGroup);
-
-    } else if (S.shape === '4pante') {
-      platFootprints = [{w:mW, d:mD, px:0, pz:0}];
-      addBox(mW,mD,0,0,houseGroup);
-      addRoofY(hipGeo(mD,mW,wH,ridgeH(mD),ov),0,0,houseGroup);
-      addGutters(mW,mD,0,0,houseGroup);
-
-    } else if (S.shape === 'L') {
-      var px1=-(wW/2), pz1=0;
-      var px2=(mW+wW)/2-(wW/2), pz2=(mD-wD)/2;
-      platFootprints = [{w:mW, d:mD, px:px1, pz:pz1}, {w:wW, d:wD, px:px2, pz:pz2}];
-      addBox(mW,mD,px1,pz1,houseGroup);
-      addBox(wW,wD,px2,pz2,houseGroup,true);
-      addRoofY(hipGeo(mD,mW,wH,ridgeH(mD),ov),px1,pz1,houseGroup);
-      addRoofY(hipGeo(wD,wW,wH,ridgeH(wD),ov),px2,pz2,houseGroup);
-      addGutters(mW,mD,px1,pz1,houseGroup);
-
-    } else if (S.shape === 'T') {
-      var px1=0, pz1=(wD/2);
-      var px2=0, pz2=-(mD/2);
-      platFootprints = [{w:mW, d:mD, px:px1, pz:pz1}, {w:wW, d:wD, px:px2, pz:pz2}];
-      addBox(mW,mD,px1,pz1,houseGroup);
-      addBox(wW,wD,px2,pz2,houseGroup,true);
-      addRoofY(hipGeo(mD,mW,wH,ridgeH(mD),ov),px1,pz1,houseGroup);
-      addRoofY(hipGeo(wD,wW,wH,ridgeH(wD),ov),px2,pz2,houseGroup);
-      addGutters(mW,mD,px1,pz1,houseGroup);
-    }
-
-    // Chimney — sits on the ridge (now at Z=0, offset in X)
-    var rH_main = ridgeH(mD);
-    var cm=new THREE.Mesh(
-      new THREE.BoxGeometry(0.45, rH_main*0.5+0.6, 0.45),
-      new THREE.MeshStandardMaterial({color:0xbcaa8a,roughness:0.8,metalness:0})
-    );
-    cm.position.set(mW*0.22, wH + rH_main*0.1, 0);
-    cm.castShadow=true; houseGroup.add(cm);
-
-    var box=new THREE.Box3().setFromObject(houseGroup);
-    var ctr=box.getCenter(new THREE.Vector3());
-    houseGroup.position.x -= ctr.x; houseGroup.position.z -= ctr.z;
-
-    // Foundation — one slab per body section, matches each shape's footprint
-    var platH = 0.45;
-    var pMat = new THREE.MeshStandardMaterial({ color:0xc8c0b4, roughness:0.88, metalness:0 });
-    platFootprints.forEach(function(fp) {
-      var slab = new THREE.Mesh(new THREE.BoxGeometry(fp.w+0.9, platH, fp.d+0.7), pMat);
-      slab.position.set(fp.px, -platH/2, fp.pz);
-      slab.castShadow = true; slab.receiveShadow = true;
-      houseGroup.add(slab);
-    });
-
-    // Raise entire group so house walls sit on top of the platform
-    houseGroup.position.y = platH;
-    scene.add(houseGroup);
-
-    orb.ty = platH + wH/2 + ridgeH(mD)/3;
-    orbCam();
-    updateEstimate();
-  }
-
-  function updateEstimate() {
-    var mW=S.mainW, mD=S.mainD, rH=ridgeH(mD);
-    var sL=Math.sqrt((mD/2)*(mD/2)+rH*rH);
-    var area = S.shape==='2pante' ? 2*sL*mW
-             : S.shape==='4pante' ? 2*sL*mW*0.88+2*(mD/2)*mW*0.28
-             : 2*sL*mW*1.35;
-    var ppm = S.matType==='tigla' ? 110 : 95;
-    var lo=Math.round(area*ppm/100)*100;
-    var hi=Math.round(lo*1.45/100)*100;
-    document.getElementById('estimatePrice').textContent =
-      lo.toLocaleString('ro-RO')+' – '+hi.toLocaleString('ro-RO')+' lei';
-  }
-
-  (function animate(){ requestAnimationFrame(animate); renderer.render(scene,camera); })();
-
-  // Load initial texture, then build
-  TL.load('tex/trudefinition-duration-designer-black-sable.jpg',
-    function(tex) { tex.wrapS = tex.wrapT = THREE.RepeatWrapping; TEXS['black-sable'] = tex; buildHouse(); },
-    undefined,
-    function()    { buildHouse(); }
-  );
-
-  window._rebuild = buildHouse;
-  window._scene   = scene;
-
-}); // end load
-
-// ═══════════════════════════════════════════
-//  UI
-// ═══════════════════════════════════════════
-function toggleStep(n) {
-  var el=document.getElementById('step'+n);
-  var wasOpen=el.classList.contains('open');
-  document.querySelectorAll('.step').forEach(function(s){
-    s.classList.remove('open');
-    var t=s.querySelector('.step-toggle'); if(t) t.textContent='›';
-  });
-  if (!wasOpen) {
-    el.classList.add('open');
-    var t=el.querySelector('.step-toggle'); if(t) t.textContent='▾';
-  }
-}
-
-function selectShape(shape, el) {
-  document.querySelectorAll('.shape-opt').forEach(function(e){e.classList.remove('active');});
-  el.classList.add('active');
-  S.shape = shape;
-  var L={'2pante':'Casă simplă - 2 pante','4pante':'Casă simplă - 4 pante','L':'Casă în L','T':'Casă în T'};
-  document.getElementById('sub1').textContent = L[shape]||shape;
-  var hasWing = (shape==='L' || shape==='T');
-  document.getElementById('wingWCard').style.display = hasWing ? '' : 'none';
-  document.getElementById('wingDCard').style.display = hasWing ? '' : 'none';
-  document.getElementById('shapeNote').style.display = hasWing ? '' : 'none';
-  if (hasWing) document.getElementById('shapeNote').textContent =
-    shape==='L'
-    ? 'Forma în L unește corpul principal cu o aripă laterală. Aici apare o dolie și o intersecție de acoperiș care trebuie urmărită atent la montaj.'
-    : 'Forma în T unește corpul principal cu o aripă centrală. Doliile și intersecțiile de pe ambele laturi trebuie calculate cu atenție.';
-  updateSub2();
-  if (window._rebuild) window._rebuild();
-}
-
-function updateSub2() {
-  var hasWing = (S.shape==='L'||S.shape==='T');
-  var t = S.mainW.toFixed(1)+' × '+S.mainD.toFixed(1)+' m';
-  if (hasWing) t += ' + aripa '+S.wingW.toFixed(1)+' × '+S.wingD.toFixed(1)+' m';
-  else t += ' · streașină '+S.overhang.toFixed(2)+' m';
-  document.getElementById('sub2').textContent = t;
-}
-
-function onVol() {
-  S.mainW    = parseFloat(document.getElementById('slMainW').value);
-  S.mainD    = parseFloat(document.getElementById('slMainD').value);
-  S.wingW    = parseFloat(document.getElementById('slWingW').value);
-  S.wingD    = parseFloat(document.getElementById('slWingD').value);
-  S.overhang = parseFloat(document.getElementById('slOverhang').value);
-  document.getElementById('vMainW').innerHTML    = S.mainW.toFixed(1)+' <em>m</em>';
-  document.getElementById('vMainD').innerHTML    = S.mainD.toFixed(1)+' <em>m</em>';
-  document.getElementById('vWingW').innerHTML    = S.wingW.toFixed(1)+' <em>m</em>';
-  document.getElementById('vWingD').innerHTML    = S.wingD.toFixed(1)+' <em>m</em>';
-  document.getElementById('vOverhang').innerHTML = S.overhang.toFixed(2)+' <em>m</em>';
-  updateSub2();
-  if (window._rebuild) window._rebuild();
-}
-
-function resetPreset() {
-  S.mainW=PRESET.mainW; S.mainD=PRESET.mainD; S.wingW=PRESET.wingW; S.wingD=PRESET.wingD; S.overhang=PRESET.overhang;
-  document.getElementById('slMainW').value=S.mainW;
-  document.getElementById('slMainD').value=S.mainD;
-  document.getElementById('slWingW').value=S.wingW;
-  document.getElementById('slWingD').value=S.wingD;
-  document.getElementById('slOverhang').value=S.overhang;
-  onVol();
-}
-
-// ── Material selector ─────────────────────────────────
-function renderMatTypeTabs() {
-  var el = document.getElementById('matTypeTabs');
-  if (!el) return;
-  el.innerHTML = Object.keys(MAT_CATALOG).map(function(key) {
-    return '<button class="mat-type-tab'+(key===S.matType?' active':'')+'" onclick="selectMatType(\''+key+'\',this)">'
-      + MAT_CATALOG[key].label + '</button>';
+function renderPortfolio(filter) {
+  var grid = document.getElementById('port-grid');
+  var items = filter === 'toate' ? PROJECTS : PROJECTS.filter(function(p){ return p.type === filter; });
+  grid.innerHTML = items.map(function(p) {
+    return '<div class="port-card reveal">'
+      + '<div class="port-thumb"><div class="port-thumb-inner" style="background:'+p.color+'">'
+      + '<span class="port-thumb-label">DikonSa</span></div></div>'
+      + '<div class="port-info"><div class="port-type">'+typeLabel(p.type)+'</div>'
+      + '<div class="port-name">'+p.name+'</div>'
+      + '<div class="port-loc">📍 '+p.loc+'</div></div></div>';
   }).join('');
+  // Trigger reveal for new cards
+  setTimeout(function(){ observeAll(); }, 50);
 }
 
-function renderColorGrid() {
-  var el = document.getElementById('matColorGrid');
-  if (!el) return;
-  var cat = MAT_CATALOG[S.matType];
-  if (S.matType === 'tigla') {
-    el.innerHTML = '<div class="tigla-grid">'
-      + cat.colors.map(function(c) {
-          return '<div class="tigla-item'+(c.id===S.matColor?' active':'')+'" onclick="selectColor(\''+c.id+'\',this)">'
-            +'<div class="tigla-swatch" style="background:'+tiglaSwatchCSS(c)+'"></div>'
-            +'<div class="tigla-name">'+c.name+'</div></div>';
-        }).join('')
-      + '</div>';
-  } else {
-    el.innerHTML = '<div class="shingle-grid">'
-      + cat.colors.map(function(c) {
-          return '<div class="shingle-item'+(c.id===S.matColor?' active':'')+'" onclick="selectColor(\''+c.id+'\',this)">'
-            +'<img class="shingle-thumb" src="tex/'+c.file+'" loading="lazy" alt="'+c.name+'">'
-            +'<div class="shingle-name">'+c.name+'</div></div>';
-        }).join('')
-      + '</div>';
-  }
+function typeLabel(t) {
+  return {rezidential:'Rezidențial', industrial:'Industrial', renovare:'Renovare', comercial:'Comercial'}[t] || t;
 }
 
-function selectMatType(key, btn) {
-  S.matType  = key;
-  S.matColor = MAT_CATALOG[key].colors[0].id;
-  document.querySelectorAll('.mat-type-tab').forEach(function(b){b.classList.remove('active');});
+function filterPort(cat, btn) {
+  document.querySelectorAll('.filter-btn').forEach(function(b){ b.classList.remove('active'); });
   btn.classList.add('active');
-  renderColorGrid();
-  updateSub3();
-  loadAndRebuild();
+  renderPortfolio(cat);
 }
 
-function selectColor(id, el) {
-  document.querySelectorAll('.tigla-item,.shingle-item').forEach(function(e){e.classList.remove('active');});
-  el.classList.add('active');
-  S.matColor = id;
-  updateSub3();
-  loadAndRebuild();
-}
+/* ── Navigation ──────────────────────── */
+var currentPage = 'acasa';
 
-function updateSub3() {
-  var cat = MAT_CATALOG[S.matType];
-  var col = findColor(S.matType, S.matColor);
-  document.getElementById('sub3').textContent = cat.label + (col ? ' · '+col.name : '');
-}
-
-function loadAndRebuild() {
-  if (S.matType === 'tigla') {
-    if (window._rebuild) window._rebuild();
-  } else {
-    var col = findColor('sindrila', S.matColor);
-    if (!col) return;
-    if (window._TEXS && window._TEXS[S.matColor]) {
-      if (window._rebuild) window._rebuild();
-    } else if (window._TL) {
-      window._TL.load('tex/'+col.file, function(tex) {
-        tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
-        if (window._TEXS) window._TEXS[S.matColor] = tex;
-        if (window._rebuild) window._rebuild();
-      });
-    }
+function go(page) {
+  if (page === currentPage) return;
+  var prev = document.getElementById('page-' + currentPage);
+  var next = document.getElementById('page-' + page);
+  if (!next) return;
+  prev.classList.remove('active');
+  next.classList.add('active');
+  next.classList.add('entering');
+  setTimeout(function(){ next.classList.remove('entering'); }, 400);
+  currentPage = page;
+  // Nav active state
+  document.querySelectorAll('.nav-links a').forEach(function(a){
+    a.classList.toggle('active', a.dataset.page === page);
+  });
+  window.scrollTo({top:0, behavior:'instant'});
+  observeAll();
+  // Lazy-init portfolio
+  if (page === 'portofoliu' && document.getElementById('port-grid').children.length === 0) {
+    renderPortfolio('toate');
   }
 }
 
-function toggleDrain() {
-  S.drainage=!S.drainage;
-  document.getElementById('drainToggle').classList.toggle('on',S.drainage);
-  document.getElementById('drainColors').style.display=S.drainage?'block':'none';
-  document.getElementById('sub4').textContent=S.drainage?'Activ':'Dezactivat';
-  if (window._rebuild) window._rebuild();
+function toggleMenu() {
+  var menu = document.getElementById('mob-menu');
+  var ham  = document.getElementById('ham');
+  menu.classList.toggle('open');
+  ham.classList.toggle('open');
 }
 
-function selectDrainColor(hex, el) {
-  document.querySelectorAll('.cswatch').forEach(function(e){e.classList.remove('active');});
-  el.classList.add('active');
-  S.drainColor=hex;
-  if (window._rebuild) window._rebuild();
+/* ── Scroll reveal ───────────────────── */
+var io = new IntersectionObserver(function(entries){
+  entries.forEach(function(e){ if(e.isIntersecting) e.target.classList.add('visible'); });
+}, {threshold:.12});
+
+function observeAll() {
+  document.querySelectorAll('.reveal:not(.visible)').forEach(function(el){ io.observe(el); });
 }
 
-function sendConfig() {
-  var cat = MAT_CATALOG[S.matType];
-  var col = findColor(S.matType, S.matColor);
-  alert('Bună ziua!\nDoresc o ofertă pentru:\n• Formă: '+S.shape
-    +'\n• Corp: '+S.mainW+'×'+S.mainD+' m'
-    +(S.shape==='L'||S.shape==='T'?'\n• Aripă: '+S.wingW+'×'+S.wingD+' m':'')
-    +'\n• Material: '+cat.label+(col?' — '+col.name:'')
-    +'\n• Scurgere: '+(S.drainage?'da':'nu'));
+/* ── Nav scroll shadow ───────────────── */
+window.addEventListener('scroll', function(){
+  document.getElementById('nav').classList.toggle('scrolled', window.scrollY > 20);
+}, {passive:true});
+
+/* ── Contact form ────────────────────── */
+function submitForm(e) {
+  e.preventDefault();
+  var btn = e.target.querySelector('button[type=submit]');
+  btn.textContent = '✓ Mesaj trimis! Te contactăm în curând.';
+  btn.style.background = '#2a7a3a';
+  btn.disabled = true;
 }
 
-// Init UI
-renderMatTypeTabs();
-renderColorGrid();
+/* ── Init ────────────────────────────── */
+window.addEventListener('DOMContentLoaded', function(){
+  observeAll();
+});
 </script>
 </body>
 </html>
