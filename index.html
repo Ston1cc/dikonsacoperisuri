@@ -425,7 +425,7 @@ window.addEventListener('load', function () {
   scene.add(ground);
 
   // ── Orbit ──────────────────────────────────────────────
-  var orb = { theta: -0.45, phi: 1.0, radius: 20, tx:0, ty:2.5, tz:0 };
+  var orb = { theta: -0.5, phi: 1.18, radius: 24, tx:0, ty:2.2, tz:0 };
   function orbCam() {
     camera.position.set(
       orb.tx + orb.radius * Math.sin(orb.phi) * Math.sin(orb.theta),
@@ -633,7 +633,7 @@ window.addEventListener('load', function () {
     });
   }
 
-  function ridgeH(W) { return W * 0.28; }  // ~29° pitch
+  function ridgeH(W) { return W * 0.22; }  // ~24° pitch
 
   function buildHouse() {
     if (houseGroup) { disposeGroup(houseGroup); scene.remove(houseGroup); }
