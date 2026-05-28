@@ -266,7 +266,7 @@
       <div class="step-header" onclick="toggleStep(3)">
         <div class="step-left">
           <div class="step-num">3</div>
-          <div class="step-text"><h3>Material &amp; Culoare</h3><p id="sub3">Sindrila Bituminoasă · Driftwood</p></div>
+          <div class="step-text"><h3>Material &amp; Culoare</h3><p id="sub3">Sindrila Bituminoasă · Black Sable</p></div>
         </div>
         <div class="step-toggle">›</div>
       </div>
@@ -337,7 +337,7 @@ var S = {
   overhang: 0.5,
   wallH: 3.0,
   matType: 'sindrila',
-  matColor: 'driftwood',
+  matColor: 'black-sable',
   drainage: false, drainColor: '#5a5a5a'
 };
 
@@ -572,7 +572,7 @@ window.addEventListener('load', function () {
   function addWinDoor(bw, bd, wH, px, pz, group) {
     var wMat = new THREE.MeshStandardMaterial({ color:0xfcf8f3, roughness:0.45 });
     var gMat = new THREE.MeshStandardMaterial({ color:0x9bbcce, roughness:0.05, metalness:0.12, transparent:true, opacity:0.68 });
-    var dMat = new THREE.MeshStandardMaterial({ color:0x5c3a1e, roughness:0.82 });
+    var dMat = new THREE.MeshStandardMaterial({ color:0xb06830, roughness:0.78 });
     var fZ   = pz - bd/2 - 0.06;  // 6 cm in front of front wall
     var wY   = wH * 0.57;
     var ox   = Math.min(bw * 0.28, bw/2 - 0.95);
@@ -698,8 +698,8 @@ window.addEventListener('load', function () {
   (function animate(){ requestAnimationFrame(animate); renderer.render(scene,camera); })();
 
   // Load initial texture, then build
-  TL.load('tex/trudefinition-duration-driftwood.jpg',
-    function(tex) { tex.wrapS = tex.wrapT = THREE.RepeatWrapping; TEXS['driftwood'] = tex; buildHouse(); },
+  TL.load('tex/trudefinition-duration-designer-black-sable.jpg',
+    function(tex) { tex.wrapS = tex.wrapT = THREE.RepeatWrapping; TEXS['black-sable'] = tex; buildHouse(); },
     undefined,
     function()    { buildHouse(); }
   );
