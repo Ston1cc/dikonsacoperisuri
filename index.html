@@ -123,10 +123,48 @@
     .shingle-thumb { width:100%; aspect-ratio:16/9; object-fit:cover; display:block; background:#e8e0d6; }
     .shingle-name { font-size:9px; font-weight:600; padding:3px 5px; background:#fff; text-align:center; line-height:1.3; color:#444; }
 
+    /* ── Mobile-first responsive ── */
     @media (max-width:900px) {
-      .configurator { flex-direction:column; }
+      .configurator { flex-direction:column; padding:0 12px 32px; gap:12px; }
       .config-panel { width:100%; }
       .viewer-panel { position:static; }
+      #viewer-wrap { height:300px; }
+    }
+    @media (max-width:600px) {
+      body { font-size:14px; }
+      .site-header { padding:10px 16px; }
+      .top-prose { padding:20px 16px 10px; }
+      .top-prose h2 { font-size:18px; margin-bottom:14px; }
+      .feature-strip { display:none; } /* hide feature cards on small screens */
+      .configurator { padding:0 8px 24px; gap:8px; }
+      #viewer-wrap { height:260px; }
+      .viewer-badges { padding:7px 10px; gap:6px; }
+      .badge { font-size:11px; padding:4px 8px; }
+      .config-panel { gap:6px; }
+      .step-header { padding:12px 12px; }
+      .step-body { padding:0 12px 12px; }
+      .step-num { width:22px; height:22px; font-size:11px; }
+      .step-text h3 { font-size:13px; }
+      .vol-grid { grid-template-columns:1fr 1fr; gap:6px; }
+      .vol-card { padding:10px 10px 8px; }
+      .vol-card-label { font-size:11px; }
+      .vol-card-val { font-size:13px; }
+      .shape-grid { grid-template-columns:1fr 1fr; gap:6px; }
+      .shape-opt { padding:8px; }
+      .shape-ico { width:28px; height:28px; }
+      .tigla-grid, .shingle-grid { grid-template-columns:repeat(3,1fr); gap:5px; }
+      .mat-type-tabs { gap:6px; }
+      .mat-type-tab { padding:7px 4px; font-size:11px; }
+      .cta-btn { padding:13px; font-size:14px; }
+      .cta-next { padding:11px; font-size:13px; }
+      .toggle-row label { font-size:12px; }
+      .estimate .eprice { font-size:20px; }
+    }
+    @media (max-width:380px) {
+      #viewer-wrap { height:220px; }
+      .feature-strip { display:none; }
+      .badge { display:none; }
+      .badge:first-child { display:flex; }
     }
   </style>
 </head>
@@ -441,6 +479,7 @@ window.addEventListener('load', function () {
   }
   orbCam();
 
+  // ── Orbit controls — mouse + touch ────────────────────
   var drag=false, lx=0, ly=0;
   canvas.addEventListener('mousedown', function(e){ drag=true; lx=e.clientX; ly=e.clientY; });
   window.addEventListener('mouseup',   function(){ drag=false; });
@@ -453,6 +492,38 @@ window.addEventListener('load', function () {
   canvas.addEventListener('wheel', function(e){
     orb.radius = Math.max(6, Math.min(50, orb.radius+e.deltaY*0.04));
     orbCam(); e.preventDefault();
+  }, {passive:false});
+
+  // Touch: single-finger rotate, two-finger pinch zoom
+  var touches = {};
+  canvas.addEventListener('touchstart', function(e){
+    e.preventDefault();
+    Array.from(e.changedTouches).forEach(function(t){ touches[t.identifier]={x:t.clientX,y:t.clientY}; });
+  }, {passive:false});
+  canvas.addEventListener('touchend', function(e){
+    Array.from(e.changedTouches).forEach(function(t){ delete touches[t.identifier]; });
+  }, {passive:false});
+  canvas.addEventListener('touchmove', function(e){
+    e.preventDefault();
+    var ids = Object.keys(touches);
+    if (ids.length === 1) {
+      var t = e.changedTouches[0];
+      var prev = touches[t.identifier];
+      if (prev) {
+        orb.theta -= (t.clientX-prev.x)*0.010;
+        orb.phi = Math.max(0.15, Math.min(1.45, orb.phi-(t.clientY-prev.y)*0.010));
+        orbCam();
+      }
+      touches[t.identifier] = {x:t.clientX, y:t.clientY};
+    } else if (ids.length === 2 && e.touches.length === 2) {
+      var t0=e.touches[0], t1=e.touches[1];
+      var dist=Math.hypot(t0.clientX-t1.clientX, t0.clientY-t1.clientY);
+      if (touches._pinchDist) {
+        orb.radius = Math.max(6, Math.min(50, orb.radius-(dist-touches._pinchDist)*0.04));
+        orbCam();
+      }
+      touches._pinchDist = dist;
+    }
   }, {passive:false});
 
   window.addEventListener('resize', function(){
