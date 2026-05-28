@@ -3,340 +3,646 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Configurator Acoperiș 3D | DikonSa Coperișuri</title>
+  <title>Configurator Acoperiș | Acoperișuri Dikons</title>
   <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
   <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: 'Segoe UI', system-ui, sans-serif; background: #f3ece3; color: #1c1c1c; min-height: 100vh; }
+/* ═══ VARIABLES ════════════════════════════════ */
+:root {
+  --bg:      #0E0C0A;
+  --panel:   #171310;
+  --panel2:  #201C18;
+  --border:  rgba(255,255,255,.07);
+  --border2: rgba(255,255,255,.13);
+  --text:    #F0EAE2;
+  --mid:     #8A7F74;
+  --dim:     #4A433D;
+  --orange:  #E8621A;
+  --orange2: rgba(232,98,26,.15);
+  --orange3: rgba(232,98,26,.08);
+  --disp:    'Syne', sans-serif;
+  --body:    'Outfit', sans-serif;
+  --nav-h:   52px;
+}
 
-    .site-header { background:#fff; border-bottom:1px solid #e8e0d6; padding:14px 28px; display:flex; align-items:center; gap:10px; }
-    .site-header .logo { font-size:18px; font-weight:800; }
-    .site-header .logo span { color:#e8621a; }
+/* ═══ RESET ════════════════════════════════════ */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; overflow: hidden; }
+body { font-family: var(--body); background: var(--bg); color: var(--text); }
+a { text-decoration: none; color: inherit; }
+button { font-family: var(--body); cursor: pointer; border: none; }
 
-    .top-prose { text-align:center; padding:36px 24px 16px; }
-    .top-prose h2 { font-size:clamp(20px,2.5vw,28px); font-weight:800; line-height:1.3; max-width:560px; margin:0 auto 24px; }
-    .top-prose h2 em { color:#e8621a; font-style:normal; }
+/* ═══ HEADER ═══════════════════════════════════ */
+#top-bar {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+  height: var(--nav-h);
+  display: grid; grid-template-columns: auto 1fr auto;
+  align-items: center; gap: 16px;
+  padding: 0 20px;
+  background: rgba(14,12,10,.92);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border);
+}
 
-    .feature-strip { display:flex; gap:12px; justify-content:center; flex-wrap:wrap; max-width:1100px; margin:0 auto 24px; padding:0 24px; }
-    .feat-card { background:#fff; border-radius:12px; padding:14px 18px; flex:1; min-width:180px; max-width:320px; box-shadow:0 1px 4px rgba(0,0,0,.07); }
-    .feat-card h4 { font-size:13px; font-weight:700; margin-bottom:5px; }
-    .feat-card p  { font-size:12px; color:#666; line-height:1.45; }
+.tb-logo img { height: 30px; width: auto; display: block; filter: brightness(0) invert(1); }
 
-    .configurator { display:flex; gap:18px; padding:0 24px 48px; max-width:1280px; margin:0 auto; align-items:flex-start; }
+/* Progress bar */
+.progress-track {
+  display: flex; align-items: center; justify-content: center; gap: 0;
+}
+.prog-step {
+  display: flex; align-items: center; gap: 0;
+}
+.prog-dot {
+  width: 26px; height: 26px; border-radius: 50%;
+  border: 1.5px solid var(--border2);
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--disp); font-size: 11px; font-weight: 800; color: var(--mid);
+  transition: all .3s; cursor: pointer; position: relative;
+}
+.prog-dot.done   { border-color: var(--orange); background: var(--orange2); color: var(--orange); }
+.prog-dot.done::after { content:'✓'; font-family:var(--body); font-size:10px; position:absolute; }
+.prog-dot.done span  { display: none; }
+.prog-dot.current { border-color: var(--orange); background: var(--orange); color: #fff; box-shadow: 0 0 12px rgba(232,98,26,.5); }
+.prog-line {
+  width: clamp(18px, 3vw, 48px); height: 1px;
+  background: var(--border2); transition: background .3s;
+}
+.prog-line.done { background: var(--orange); }
+.prog-label {
+  font-size: 10px; font-weight: 500; color: var(--mid);
+  position: absolute; bottom: -18px; left: 50%; transform: translateX(-50%);
+  white-space: nowrap; letter-spacing: .5px;
+  display: none;
+}
+@media (min-width: 700px) { .prog-label { display: block; } }
 
-    /* Viewer */
-    .viewer-panel { flex:1; background:#fff; border-radius:16px; overflow:hidden; box-shadow:0 2px 10px rgba(0,0,0,.08); position:sticky; top:18px; }
-    .viewer-badges { display:flex; gap:8px; padding:10px 14px; border-bottom:1px solid #f0e9df; flex-wrap:wrap; }
-    .badge { display:flex; align-items:center; gap:5px; padding:5px 11px; border-radius:20px; border:1px solid #e5ddd4; font-size:12px; color:#555; background:#faf6f2; }
-    #viewer-wrap { width:100%; height:430px; position:relative; overflow:hidden; background:#f0e8de; }
-    #roof-canvas { display:block; position:absolute; top:0; left:0; width:100%; height:100%; cursor:grab; touch-action:none; }
-    #roof-canvas:active { cursor:grabbing; }
-    .viewer-note { padding:10px 14px; background:#faf6f2; font-size:12px; color:#777; border-top:1px solid #f0e9df; line-height:1.5; }
+.tb-close a {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 12px; font-weight: 500; color: var(--mid);
+  padding: 6px 12px; border-radius: 6px; border: 1px solid var(--border2);
+  transition: all .2s;
+}
+.tb-close a:hover { color: var(--text); border-color: var(--border2); background: var(--panel2); }
 
-    /* Config */
-    .config-panel { width:420px; flex-shrink:0; display:flex; flex-direction:column; gap:8px; }
-    .step { background:#fff; border-radius:12px; overflow:hidden; box-shadow:0 1px 4px rgba(0,0,0,.06); }
-    .step-header { display:flex; align-items:center; justify-content:space-between; padding:14px 16px; cursor:pointer; user-select:none; transition:background .1s; }
-    .step-header:hover { background:#faf6f2; }
-    .step-left { display:flex; align-items:center; gap:10px; }
-    .step-num { width:26px; height:26px; border-radius:50%; background:#e8621a; color:#fff; font-size:13px; font-weight:700; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
-    .step-text h3 { font-size:14px; font-weight:700; }
-    .step-text p  { font-size:11px; color:#999; margin-top:1px; }
-    .step-toggle { width:26px; height:26px; border-radius:50%; border:1px solid #ddd; display:flex; align-items:center; justify-content:center; font-size:13px; color:#666; transition:transform .2s; }
-    .step.open .step-toggle { transform:rotate(180deg); }
-    .step-body { padding:0 16px 14px; display:none; }
-    .step.open .step-body { display:block; }
+/* ═══ MAIN LAYOUT ══════════════════════════════ */
+#layout {
+  position: fixed; top: var(--nav-h); left: 0; right: 0; bottom: 0;
+  display: grid; grid-template-columns: 1fr 400px;
+}
 
-    /* Shape */
-    .shape-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
-    .shape-opt { border:2px solid #e5ddd4; border-radius:10px; padding:10px; cursor:pointer; display:flex; align-items:flex-start; gap:8px; transition:all .15s; }
-    .shape-opt:hover { border-color:#e8621a; background:#fff9f6; }
-    .shape-opt.active { border-color:#e8621a; background:#fff5f0; }
-    .shape-ico { width:34px; height:34px; background:#fff0e8; border-radius:7px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
-    .shape-ico svg { width:20px; height:20px; }
-    .shape-text h5 { font-size:12px; font-weight:700; }
-    .shape-text p  { font-size:10px; color:#999; line-height:1.3; margin-top:2px; }
+/* ═══ VIEWER SIDE ══════════════════════════════ */
+#viewer-side {
+  position: relative; overflow: hidden; background: #1a1714;
+}
+#viewer-wrap { width: 100%; height: 100%; }
+#roof-canvas {
+  display: block; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+  cursor: grab; touch-action: none;
+}
+#roof-canvas:active { cursor: grabbing; }
 
-    /* ── Vol card grid ── */
-    .vol-head { display:flex; align-items:center; justify-content:flex-end; margin-bottom:10px; }
-    .preset-btn { font-size:12px; font-weight:600; color:#e8621a; border:1px solid #fcddc9; background:#fff5f0; border-radius:8px; padding:5px 10px; cursor:pointer; transition:background .15s; }
-    .preset-btn:hover { background:#ffe8d8; }
-    .vol-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
-    .vol-card { background:#f9f5f1; border-radius:10px; padding:12px 12px 10px; border:1px solid #ede5da; }
-    .vol-card.full { grid-column:1 / -1; }
-    .vol-card-top { display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:8px; gap:6px; }
-    .vol-card-label { font-size:12px; font-weight:700; line-height:1.3; flex:1; }
-    .vol-card-val { font-size:14px; font-weight:800; color:#e8621a; white-space:nowrap; }
-    .vol-card-val em { font-size:10px; font-style:normal; font-weight:600; color:#e8621a; }
-    input[type=range] { width:100%; -webkit-appearance:none; height:4px; border-radius:2px; background:#ddd8d0; outline:none; }
-    input[type=range]::-webkit-slider-thumb { -webkit-appearance:none; width:16px; height:16px; border-radius:50%; background:#e8621a; cursor:pointer; box-shadow:0 1px 4px rgba(0,0,0,.2); }
-    .vol-card-desc { font-size:10px; color:#999; line-height:1.35; margin-top:7px; }
-    .shape-note { font-size:11px; color:#777; line-height:1.5; margin-top:8px; padding:8px 10px; background:#f5f0ea; border-radius:8px; border-left:3px solid #e8621a; }
+/* Floating overlays */
+.v-overlay {
+  position: absolute; pointer-events: none;
+}
 
-    /* Mat */
-    .mat-grid { display:flex; flex-direction:column; gap:7px; }
-    .mat-opt { border:2px solid #e5ddd4; border-radius:10px; padding:10px 12px; cursor:pointer; display:flex; align-items:center; gap:12px; transition:all .15s; }
-    .mat-opt:hover { border-color:#e8621a; background:#fff9f6; }
-    .mat-opt.active { border-color:#e8621a; background:#fff5f0; }
-    .mat-preview { width:44px; height:34px; border-radius:6px; flex-shrink:0; overflow:hidden; }
-    .mat-preview canvas { width:100%; height:100%; display:block; }
-    .mat-info h5 { font-size:13px; font-weight:700; }
-    .mat-info p  { font-size:11px; color:#888; }
+/* Price badge */
+#v-price {
+  bottom: 24px; left: 24px;
+  background: rgba(14,12,10,.85);
+  backdrop-filter: blur(10px);
+  border: 1px solid var(--border2);
+  border-radius: 12px;
+  padding: 14px 18px;
+  min-width: 180px;
+}
+.vp-top {
+  display: flex; align-items: center; gap: 6px; margin-bottom: 4px;
+}
+.vp-dot {
+  width: 6px; height: 6px; border-radius: 50%; background: var(--orange);
+  animation: pulse 2s infinite;
+}
+@keyframes pulse { 0%,100%{opacity:1}50%{opacity:.4} }
+.vp-label { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 1.5px; color: var(--mid); }
+.vp-price {
+  font-family: var(--disp); font-size: 22px; font-weight: 800; color: var(--text);
+  line-height: 1;
+}
+.vp-area { font-size: 11px; color: var(--mid); margin-top: 3px; }
 
-    /* Drain */
-    .toggle-row { display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; }
-    .toggle-row label { font-size:13px; font-weight:500; }
-    .tog { width:38px; height:21px; border-radius:11px; background:#ccc; position:relative; cursor:pointer; transition:background .2s; }
-    .tog.on { background:#e8621a; }
-    .tog-thumb { width:17px; height:17px; background:#fff; border-radius:50%; position:absolute; top:2px; left:2px; transition:left .2s; box-shadow:0 1px 3px rgba(0,0,0,.2); }
-    .tog.on .tog-thumb { left:19px; }
-    .color-row { display:flex; gap:7px; flex-wrap:wrap; margin-top:4px; }
-    .cswatch { width:26px; height:26px; border-radius:50%; cursor:pointer; border:2px solid transparent; transition:border-color .15s,transform .1s; }
-    .cswatch.active, .cswatch:hover { border-color:#e8621a; transform:scale(1.15); }
+/* Drag hint */
+#v-hint {
+  top: 20px; left: 50%; transform: translateX(-50%);
+  background: rgba(14,12,10,.7);
+  backdrop-filter: blur(8px);
+  border: 1px solid var(--border2);
+  border-radius: 20px;
+  padding: 7px 14px;
+  display: flex; align-items: center; gap: 7px;
+  font-size: 12px; color: var(--mid);
+  transition: opacity .5s;
+}
+#v-hint svg { width: 14px; height: 14px; opacity: .7; }
 
-    /* Estimate */
-    .estimate { background:#fff5f0; border:1px solid #fcddc9; border-radius:10px; padding:12px 14px; margin-bottom:10px; }
-    .estimate .elabel { font-size:11px; color:#999; }
-    .estimate .eprice { font-size:24px; font-weight:800; color:#e8621a; line-height:1.1; }
-    .estimate .enote  { font-size:10px; color:#bbb; margin-top:2px; }
-    .cta-btn { width:100%; padding:14px; background:#e8621a; color:#fff; border:none; border-radius:10px; font-size:15px; font-weight:700; cursor:pointer; transition:background .15s; }
-    .cta-btn:hover { background:#c95415; }
-    .cta-next { width:100%; padding:12px; background:#1c1c1c; color:#fff; border:none; border-radius:10px; font-size:14px; font-weight:700; cursor:pointer; margin-top:12px; transition:background .15s; }
-    .cta-next:hover { background:#333; }
-    .step-info-note { font-size:11px; color:#888; line-height:1.5; margin-top:10px; padding:8px 0; border-top:1px solid #f0e9e0; }
+/* Shape label overlay */
+#v-shape-label {
+  top: 20px; right: 20px;
+  background: var(--orange);
+  border-radius: 6px; padding: 5px 12px;
+  font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: #fff;
+}
 
-    /* Material type tabs */
-    .mat-type-tabs { display:flex; gap:8px; margin-bottom:12px; }
-    .mat-type-tab { flex:1; padding:9px 6px; border-radius:10px; border:2px solid #e5ddd4; background:#fff; font-size:12px; font-weight:700; cursor:pointer; text-align:center; color:#666; transition:all .15s; line-height:1.3; }
-    .mat-type-tab:hover { border-color:#e8621a66; background:#faf6f2; }
-    .mat-type-tab.active { border-color:#e8621a; background:#fff5f0; color:#e8621a; }
-    /* Tigla color swatches */
-    .tigla-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:7px; }
-    .tigla-item { border:2px solid transparent; border-radius:10px; padding:8px 6px 7px; cursor:pointer; text-align:center; background:#fff; transition:border-color .15s; }
-    .tigla-item.active, .tigla-item:hover { border-color:#e8621a; background:#fff9f6; }
-    .tigla-swatch { width:48px; height:44px; border-radius:8px; margin:0 auto 5px; border:1px solid rgba(0,0,0,0.1); }
-    .tigla-name { font-size:10px; font-weight:600; color:#555; line-height:1.3; }
-    /* Sindrila photo swatches */
-    .shingle-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:6px; }
-    .shingle-item { border-radius:8px; overflow:hidden; cursor:pointer; border:2px solid transparent; transition:border-color .15s; }
-    .shingle-item.active, .shingle-item:hover { border-color:#e8621a; }
-    .shingle-thumb { width:100%; aspect-ratio:16/9; object-fit:cover; display:block; background:#e8e0d6; }
-    .shingle-name { font-size:9px; font-weight:600; padding:3px 5px; background:#fff; text-align:center; line-height:1.3; color:#444; }
+/* ═══ CONFIG PANEL ═════════════════════════════ */
+#config-panel {
+  background: var(--panel);
+  border-left: 1px solid var(--border);
+  display: flex; flex-direction: column;
+  overflow: hidden; position: relative;
+}
 
-    /* ── Mobile-first responsive ── */
-    @media (max-width:900px) {
-      .configurator { flex-direction:column; padding:0 12px 32px; gap:12px; }
-      .config-panel { width:100%; }
-      .viewer-panel { position:static; }
-      #viewer-wrap { height:300px; }
-    }
-    @media (max-width:600px) {
-      body { font-size:14px; }
-      .site-header { padding:10px 16px; }
-      .top-prose { padding:20px 16px 10px; }
-      .top-prose h2 { font-size:18px; margin-bottom:14px; }
-      .feature-strip { display:none; } /* hide feature cards on small screens */
-      .configurator { padding:0 8px 24px; gap:8px; }
-      #viewer-wrap { height:260px; }
-      .viewer-badges { padding:7px 10px; gap:6px; }
-      .badge { font-size:11px; padding:4px 8px; }
-      .config-panel { gap:6px; }
-      .step-header { padding:12px 12px; }
-      .step-body { padding:0 12px 12px; }
-      .step-num { width:22px; height:22px; font-size:11px; }
-      .step-text h3 { font-size:13px; }
-      .vol-grid { grid-template-columns:1fr 1fr; gap:6px; }
-      .vol-card { padding:10px 10px 8px; }
-      .vol-card-label { font-size:11px; }
-      .vol-card-val { font-size:13px; }
-      .shape-grid { grid-template-columns:1fr 1fr; gap:6px; }
-      .shape-opt { padding:8px; }
-      .shape-ico { width:28px; height:28px; }
-      .tigla-grid, .shingle-grid { grid-template-columns:repeat(3,1fr); gap:5px; }
-      .mat-type-tabs { gap:6px; }
-      .mat-type-tab { padding:7px 4px; font-size:11px; }
-      .cta-btn { padding:13px; font-size:14px; }
-      .cta-next { padding:11px; font-size:13px; }
-      .toggle-row label { font-size:12px; }
-      .estimate .eprice { font-size:20px; }
-    }
-    @media (max-width:380px) {
-      #viewer-wrap { height:220px; }
-      .feature-strip { display:none; }
-      .badge { display:none; }
-      .badge:first-child { display:flex; }
-    }
+/* Step panels */
+.sp {
+  display: none; flex-direction: column;
+  height: 100%; padding: 0;
+}
+.sp.active { display: flex; }
+
+/* Step enter animation */
+.sp.slide-in  { animation: slideIn  .3s ease both; }
+.sp.slide-out { animation: slideOut .3s ease both; }
+@keyframes slideIn  { from{opacity:0;transform:translateX(20px)} to{opacity:1;transform:none} }
+@keyframes slideOut { from{opacity:1;transform:none} to{opacity:0;transform:translateX(-20px)} }
+
+.sp-head {
+  padding: 24px 24px 16px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.sp-num {
+  font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 2px;
+  color: var(--orange); margin-bottom: 6px;
+}
+.sp-head h2 {
+  font-family: var(--disp); font-size: 20px; font-weight: 800;
+  letter-spacing: -.5px; line-height: 1.1; margin-bottom: 4px;
+}
+.sp-head p { font-size: 13px; color: var(--mid); font-weight: 300; }
+
+.sp-body {
+  flex: 1; overflow-y: auto; padding: 20px 24px;
+  scrollbar-width: thin; scrollbar-color: var(--dim) transparent;
+}
+.sp-body::-webkit-scrollbar { width: 4px; }
+.sp-body::-webkit-scrollbar-thumb { background: var(--dim); border-radius: 2px; }
+
+.sp-foot {
+  padding: 16px 24px;
+  border-top: 1px solid var(--border);
+  display: flex; gap: 10px; flex-shrink: 0;
+}
+
+/* ═══ BUTTONS ══════════════════════════════════ */
+.btn-next {
+  flex: 1; padding: 13px;
+  background: var(--orange); color: #fff;
+  border-radius: 8px; font-size: 14px; font-weight: 700;
+  transition: filter .15s, transform .15s;
+}
+.btn-next:hover { filter: brightness(1.1); transform: translateY(-1px); }
+
+.btn-back {
+  padding: 13px 18px;
+  background: var(--panel2); color: var(--mid);
+  border-radius: 8px; font-size: 13px; font-weight: 600;
+  border: 1px solid var(--border2);
+  transition: color .2s, border-color .2s;
+}
+.btn-back:hover { color: var(--text); border-color: var(--border2); }
+
+/* ═══ SHAPE CARDS ══════════════════════════════ */
+.shape-cards {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
+}
+.shape-card {
+  background: var(--panel2);
+  border: 1.5px solid var(--border);
+  border-radius: 12px; padding: 18px 14px;
+  cursor: pointer; transition: border-color .2s, background .2s, box-shadow .2s;
+  display: flex; flex-direction: column; align-items: center; gap: 12px; text-align: center;
+}
+.shape-card:hover {
+  border-color: var(--orange); background: var(--orange3);
+}
+.shape-card.active {
+  border-color: var(--orange); background: var(--orange2);
+  box-shadow: 0 0 0 1px var(--orange);
+}
+.shape-card svg { width: 52px; height: 36px; color: var(--mid); transition: color .2s; }
+.shape-card.active svg, .shape-card:hover svg { color: var(--orange); }
+.sc-name { font-family: var(--disp); font-size: 12px; font-weight: 700; line-height: 1.3; }
+.sc-desc { font-size: 11px; color: var(--mid); line-height: 1.4; }
+
+/* ═══ VOL SLIDERS ══════════════════════════════ */
+.vol-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.vol-card.full { grid-column: 1 / -1; }
+.vol-card {
+  background: var(--panel2); border: 1px solid var(--border);
+  border-radius: 10px; padding: 14px;
+}
+.vc-top { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 10px; }
+.vc-label { font-size: 11px; font-weight: 600; color: var(--mid); line-height: 1.35; }
+.vc-val {
+  font-family: var(--disp); font-size: 18px; font-weight: 800; color: var(--orange);
+  white-space: nowrap; line-height: 1;
+}
+.vc-val em { font-size: 11px; font-style: normal; font-weight: 600; }
+
+input[type=range] {
+  width: 100%; -webkit-appearance: none; appearance: none;
+  height: 3px; border-radius: 2px; background: var(--dim); outline: none;
+}
+input[type=range]::-webkit-slider-thumb {
+  -webkit-appearance: none; width: 16px; height: 16px;
+  border-radius: 50%; background: var(--orange); cursor: pointer;
+  box-shadow: 0 0 8px rgba(232,98,26,.5);
+}
+input[type=range]::-moz-range-thumb {
+  width: 16px; height: 16px; border-radius: 50%; background: var(--orange);
+  border: none; cursor: pointer;
+}
+
+.vc-desc { font-size: 10.5px; color: var(--dim); margin-top: 8px; line-height: 1.5; }
+.shape-note-dark {
+  font-size: 11.5px; color: var(--mid); line-height: 1.6;
+  margin-top: 12px; padding: 12px; background: var(--panel2);
+  border-radius: 8px; border-left: 2px solid var(--orange);
+}
+
+.reset-link {
+  display: flex; align-items: center; justify-content: flex-end;
+  gap: 6px; font-size: 12px; color: var(--mid); cursor: pointer;
+  margin-bottom: 14px; background: none; border: none; padding: 0;
+  transition: color .2s;
+}
+.reset-link:hover { color: var(--orange); }
+
+/* ═══ MAT TYPE TABS ════════════════════════════ */
+.mat-tabs {
+  display: flex; gap: 2px; background: var(--panel2);
+  border-radius: 8px; padding: 3px; margin-bottom: 16px;
+}
+.mat-tab {
+  flex: 1; padding: 9px 8px; border-radius: 6px;
+  font-size: 12px; font-weight: 700; color: var(--mid);
+  background: transparent; border: none;
+  transition: background .2s, color .2s;
+  text-align: center;
+}
+.mat-tab.active { background: var(--orange); color: #fff; }
+.mat-tab:not(.active):hover { color: var(--text); }
+
+/* Color grid */
+.color-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 7px; }
+.col-item {
+  border-radius: 8px; overflow: hidden; cursor: pointer;
+  border: 1.5px solid transparent;
+  transition: border-color .15s, transform .15s;
+}
+.col-item:hover { border-color: rgba(232,98,26,.5); transform: scale(1.03); }
+.col-item.active { border-color: var(--orange); box-shadow: 0 0 0 1px var(--orange); }
+.col-swatch { width: 100%; aspect-ratio: 3/2; display: block; }
+.col-swatch img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.col-name {
+  font-size: 9px; font-weight: 600; padding: 4px 6px;
+  background: var(--panel2); text-align: center; color: var(--mid); line-height: 1.3;
+}
+
+/* Reference photos strip */
+.ref-strip-label {
+  font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px;
+  color: var(--dim); margin-top: 20px; margin-bottom: 10px;
+}
+.ref-strip { display: grid; grid-template-columns: repeat(3,1fr); gap: 6px; }
+.ref-photo {
+  aspect-ratio: 4/3; border-radius: 6px; overflow: hidden; border: 1px solid var(--border);
+}
+.ref-photo img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform .3s; }
+.ref-photo:hover img { transform: scale(1.06); }
+
+/* ═══ DRAIN ════════════════════════════════════ */
+.drain-toggle-row {
+  display: flex; align-items: center; justify-content: space-between;
+  background: var(--panel2); border: 1px solid var(--border);
+  border-radius: 10px; padding: 16px;
+  margin-bottom: 16px;
+}
+.drain-toggle-row label { font-size: 14px; font-weight: 500; }
+.tog {
+  width: 44px; height: 24px; border-radius: 12px; background: var(--dim);
+  position: relative; cursor: pointer; transition: background .25s;
+}
+.tog.on { background: var(--orange); }
+.tog-thumb {
+  width: 18px; height: 18px; background: #fff; border-radius: 50%;
+  position: absolute; top: 3px; left: 3px; transition: left .25s;
+  box-shadow: 0 1px 4px rgba(0,0,0,.4);
+}
+.tog.on .tog-thumb { left: 23px; }
+
+.drain-label { font-size: 12px; color: var(--mid); margin-bottom: 10px; }
+.drain-swatches { display: flex; gap: 8px; flex-wrap: wrap; }
+.cswatch {
+  width: 28px; height: 28px; border-radius: 50%; cursor: pointer;
+  border: 2px solid transparent; transition: border-color .15s, transform .1s;
+}
+.cswatch.active, .cswatch:hover { border-color: var(--orange); transform: scale(1.15); }
+
+/* ═══ ESTIMATE / STEP 5 ════════════════════════ */
+.estimate-box {
+  background: var(--panel2); border: 1px solid var(--border);
+  border-radius: 12px; padding: 22px;
+  display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
+  margin-bottom: 20px;
+}
+.est-item {}
+.est-lbl { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; color: var(--dim); margin-bottom: 5px; }
+.est-val { font-family: var(--disp); font-size: 20px; font-weight: 800; color: var(--text); line-height: 1.1; }
+.est-val.orange { color: var(--orange); }
+.est-note { font-size: 11px; color: var(--dim); margin-top: 4px; }
+
+.contact-form { display: flex; flex-direction: column; gap: 10px; margin-bottom: 16px; }
+.cf-group label { display: block; font-size: 10.5px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; color: var(--mid); margin-bottom: 6px; }
+.cf-group input, .cf-group textarea, .cf-group select {
+  width: 100%; font-family: var(--body); font-size: 13.5px; color: var(--text);
+  background: var(--panel2); border: 1.5px solid var(--border2);
+  border-radius: 8px; padding: 11px 12px; outline: none;
+  transition: border-color .2s; -webkit-appearance: none; appearance: none;
+}
+.cf-group input:focus, .cf-group textarea:focus, .cf-group select:focus { border-color: var(--orange); }
+.cf-group input::placeholder, .cf-group textarea::placeholder { color: var(--dim); }
+.cf-group textarea { height: 80px; resize: none; }
+.cf-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+.price-banner {
+  background: linear-gradient(135deg, var(--orange), #c44a0a);
+  border-radius: 10px; padding: 16px 20px; margin-bottom: 18px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.pb-text { font-size: 12px; color: rgba(255,255,255,.75); }
+.pb-price { font-family: var(--disp); font-size: 22px; font-weight: 800; color: #fff; }
+
+/* ═══ MOBILE ════════════════════════════════════ */
+@media (max-width: 720px) {
+  html, body { overflow: auto; height: auto; }
+  #layout {
+    position: static;
+    grid-template-columns: 1fr;
+    grid-template-rows: 54vw auto;
+    min-height: calc(100vh - var(--nav-h));
+  }
+  #viewer-side { height: 54vw; min-height: 240px; }
+  #config-panel { height: auto; overflow: visible; }
+  .sp { height: auto; }
+  .sp-body { overflow-y: visible; }
+  #v-price { bottom: 10px; left: 10px; }
+  .vol-cards { grid-template-columns: 1fr; }
+  .cf-row { grid-template-columns: 1fr; }
+  .progress-track { gap: 0; }
+  .prog-line { width: 14px; }
+}
   </style>
 </head>
 <body>
 
-<header class="site-header">
-  <div class="logo">Dikon<span>Sa</span> <span style="font-weight:400;color:#888">Coperișuri</span></div>
-</header>
-
-<div class="top-prose">
-  <h2>Află cât te costă acoperișul,<br>la doar <em>câteva click-uri distanță.</em></h2>
-</div>
-
-<div class="feature-strip">
-  <div class="feat-card"><h4>4 forme comparabile</h4><p>Casă simplă în 2 sau 4 pante, plus formele L și T, în același configurator.</p></div>
-  <div class="feat-card"><h4>2 tipuri, 14 nuanțe</h4><p>Țiglă Modulară (6 nuanțe) și Sindrila Bituminoasă (8 nuanțe), cu texturi reale aplicate pe model.</p></div>
-  <div class="feat-card"><h4>Sistem de scurgere inclus</h4><p>Poți activa rapid sistemul de scurgere, iar configurația ajunge direct în cererea ta.</p></div>
-</div>
-
-<div class="configurator">
-
-  <div class="viewer-panel">
-    <div class="viewer-badges">
-      <span class="badge">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#e8621a" stroke-width="2.5"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
-        Model interactiv
-      </span>
-      <span class="badge">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#e8621a" stroke-width="2.5"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
-        Volumetrie reglabilă
-      </span>
-      <span class="badge">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#e8621a" stroke-width="2.5"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
-        Scurgere și efecte
-      </span>
-    </div>
-    <div id="viewer-wrap"><canvas id="roof-canvas"></canvas></div>
-    <div class="viewer-note">Modelul este orientativ și te ajută să compari forma casei, materialul și estimarea generală înainte de oferta finală.</div>
+<!-- ═══ TOP BAR ══════════════════════════════════ -->
+<div id="top-bar">
+  <div class="tb-logo">
+    <a href="index.html"><img src="img/logo.jpg" alt="Acoperișuri Dikons"></a>
   </div>
 
-  <div class="config-panel">
+  <nav class="progress-track" id="prog-track">
+    <div class="prog-step">
+      <div class="prog-dot current" id="pd-1" onclick="goStep(1)"><span>1</span></div>
+    </div>
+    <div class="prog-line" id="pl-1"></div>
+    <div class="prog-step">
+      <div class="prog-dot" id="pd-2" onclick="goStep(2)"><span>2</span></div>
+    </div>
+    <div class="prog-line" id="pl-2"></div>
+    <div class="prog-step">
+      <div class="prog-dot" id="pd-3" onclick="goStep(3)"><span>3</span></div>
+    </div>
+    <div class="prog-line" id="pl-3"></div>
+    <div class="prog-step">
+      <div class="prog-dot" id="pd-4" onclick="goStep(4)"><span>4</span></div>
+    </div>
+    <div class="prog-line" id="pl-4"></div>
+    <div class="prog-step">
+      <div class="prog-dot" id="pd-5" onclick="goStep(5)"><span>5</span></div>
+    </div>
+  </nav>
 
-    <!-- Step 1 -->
-    <div class="step open" id="step1">
-      <div class="step-header" onclick="toggleStep(1)">
-        <div class="step-left">
-          <div class="step-num">1</div>
-          <div class="step-text"><h3>Forma Acoperișului</h3><p id="sub1">Casă simplă - 2 pante</p></div>
-        </div>
-        <div class="step-toggle">▾</div>
+  <div class="tb-close">
+    <a href="index.html">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      Închide
+    </a>
+  </div>
+</div>
+
+<!-- ═══ MAIN LAYOUT ══════════════════════════════ -->
+<div id="layout">
+
+  <!-- 3D VIEWER -->
+  <div id="viewer-side">
+    <div id="viewer-wrap">
+      <canvas id="roof-canvas"></canvas>
+    </div>
+
+    <!-- Floating: price badge -->
+    <div class="v-overlay" id="v-price">
+      <div class="vp-top">
+        <div class="vp-dot"></div>
+        <span class="vp-label">Estimare orientativă</span>
       </div>
-      <div class="step-body">
-        <div class="shape-grid">
-          <div class="shape-opt active" onclick="selectShape('2pante',this)">
-            <div class="shape-ico"><svg viewBox="0 0 24 24" fill="none" stroke="#e8621a" stroke-width="2"><polygon points="2,18 12,5 22,18"/><line x1="2" y1="18" x2="22" y2="18"/></svg></div>
-            <div class="shape-text"><h5>Casă simplă - 2 pante</h5><p>Volum dreptunghiular de referință, cu coamă simplă</p></div>
+      <div class="vp-price" id="estimatePrice">—</div>
+      <div class="vp-area" id="estimateArea">— m²</div>
+    </div>
+
+    <!-- Floating: drag hint -->
+    <div class="v-overlay" id="v-hint">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+      Trage pentru a roti
+    </div>
+
+    <!-- Floating: shape label -->
+    <div class="v-overlay" id="v-shape-label" style="display:none">2 Pante</div>
+  </div>
+
+  <!-- CONFIG PANEL -->
+  <div id="config-panel">
+
+    <!-- ── STEP 1: Forma ── -->
+    <div class="sp active" id="sp-1">
+      <div class="sp-head">
+        <div class="sp-num">Pasul 1 din 5</div>
+        <h2>Forma acoperișului</h2>
+        <p id="sub1">Casă simplă - 2 pante</p>
+      </div>
+      <div class="sp-body">
+        <div class="shape-cards">
+          <div class="shape-card active" onclick="selectShape('2pante',this)" data-label="2 Pante">
+            <svg viewBox="0 0 60 40" fill="none" stroke="currentColor" stroke-width="1.8">
+              <path d="M5 35 L30 8 L55 35 Z"/><line x1="5" y1="35" x2="55" y2="35"/>
+            </svg>
+            <div>
+              <div class="sc-name">Casă simplă<br>2 pante</div>
+              <div class="sc-desc">Coamă simplă, volum dreptunghiular</div>
+            </div>
           </div>
-          <div class="shape-opt" onclick="selectShape('4pante',this)">
-            <div class="shape-ico"><svg viewBox="0 0 24 24" fill="none" stroke="#e8621a" stroke-width="2"><polygon points="12,4 22,18 2,18"/><line x1="7" y1="18" x2="12" y2="9"/><line x1="17" y1="18" x2="12" y2="9"/></svg></div>
-            <div class="shape-text"><h5>Casă simplă - 4 pante</h5><p>Acoperiș compact, cu 4 ape și volum echilibrat</p></div>
+          <div class="shape-card" onclick="selectShape('4pante',this)" data-label="4 Pante">
+            <svg viewBox="0 0 60 40" fill="none" stroke="currentColor" stroke-width="1.8">
+              <polygon points="30,8 55,30 5,30"/><line x1="10" y1="30" x2="30" y2="14"/><line x1="50" y1="30" x2="30" y2="14"/>
+            </svg>
+            <div>
+              <div class="sc-name">Casă simplă<br>4 pante</div>
+              <div class="sc-desc">4 ape, volum compact și echilibrat</div>
+            </div>
           </div>
-          <div class="shape-opt" onclick="selectShape('L',this)">
-            <div class="shape-ico"><svg viewBox="0 0 24 24" fill="none" stroke="#e8621a" stroke-width="2"><path d="M3 3 L3 21 L13 21 L13 13 L21 13 L21 3 Z"/></svg></div>
-            <div class="shape-text"><h5>Casă în L</h5><p>Formă compusă, setată automat pe 4 pante</p></div>
+          <div class="shape-card" onclick="selectShape('L',this)" data-label="Formă L">
+            <svg viewBox="0 0 60 40" fill="none" stroke="currentColor" stroke-width="1.8">
+              <path d="M4 4 L4 36 L32 36 L32 20 L52 20 L52 4 Z"/>
+            </svg>
+            <div>
+              <div class="sc-name">Casă în L</div>
+              <div class="sc-desc">Formă compusă, 4 pante automat</div>
+            </div>
           </div>
-          <div class="shape-opt" onclick="selectShape('T',this)">
-            <div class="shape-ico"><svg viewBox="0 0 24 24" fill="none" stroke="#e8621a" stroke-width="2"><path d="M2 4 L22 4 L22 11 L14 11 L14 20 L10 20 L10 11 L2 11 Z"/></svg></div>
-            <div class="shape-text"><h5>Casă în T</h5><p>Formă compusă, setată automat pe 4 pante</p></div>
+          <div class="shape-card" onclick="selectShape('T',this)" data-label="Formă T">
+            <svg viewBox="0 0 60 40" fill="none" stroke="currentColor" stroke-width="1.8">
+              <path d="M4 4 L56 4 L56 17 L38 17 L38 36 L22 36 L22 17 L4 17 Z"/>
+            </svg>
+            <div>
+              <div class="sc-name">Casă în T</div>
+              <div class="sc-desc">Formă compusă, 4 pante automat</div>
+            </div>
           </div>
         </div>
+      </div>
+      <div class="sp-foot">
+        <button class="btn-next" onclick="goStep(2)">Continuă — Volumetrie →</button>
       </div>
     </div>
 
-    <!-- Step 2 — Volumetrie card grid -->
-    <div class="step" id="step2">
-      <div class="step-header" onclick="toggleStep(2)">
-        <div class="step-left">
-          <div class="step-num">2</div>
-          <div class="step-text"><h3>Ajustează Volumetria</h3><p id="sub2">12.0 × 8.0 m · streașină 0.5 m</p></div>
-        </div>
-        <div class="step-toggle">›</div>
+    <!-- ── STEP 2: Volumetrie ── -->
+    <div class="sp" id="sp-2">
+      <div class="sp-head">
+        <div class="sp-num">Pasul 2 din 5</div>
+        <h2>Volumetrie</h2>
+        <p id="sub2">12.0 × 8.0 m · streașină 0.50 m</p>
       </div>
-      <div class="step-body">
-        <div class="vol-head">
-          <button class="preset-btn" onclick="resetPreset()">↩ Revino la preset</button>
-        </div>
-        <div class="vol-grid">
-          <!-- Main body -->
+      <div class="sp-body">
+        <button class="reset-link" onclick="resetPreset()">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 109-9 9.75 9.75 0 00-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+          Revino la preset
+        </button>
+        <div class="vol-cards">
           <div class="vol-card">
-            <div class="vol-card-top">
-              <span class="vol-card-label">Lățime corp<br>principal</span>
-              <span class="vol-card-val" id="vMainW">12.0 <em>m</em></span>
+            <div class="vc-top">
+              <span class="vc-label">Lățime corp<br>principal</span>
+              <span class="vc-val" id="vMainW">12.0 <em>m</em></span>
             </div>
             <input type="range" id="slMainW" min="4" max="20" step="0.1" value="12" oninput="onVol()">
-            <p class="vol-card-desc">Controlează corpul principal pe axa frontală.</p>
+            <p class="vc-desc">Axa frontală a corpului principal</p>
           </div>
           <div class="vol-card">
-            <div class="vol-card-top">
-              <span class="vol-card-label">Adâncime corp<br>principal</span>
-              <span class="vol-card-val" id="vMainD">8.0 <em>m</em></span>
+            <div class="vc-top">
+              <span class="vc-label">Adâncime corp<br>principal</span>
+              <span class="vc-val" id="vMainD">8.0 <em>m</em></span>
             </div>
             <input type="range" id="slMainD" min="4" max="20" step="0.1" value="8" oninput="onVol()">
-            <p class="vol-card-desc">Definește cât de compact sau alungit este volumul principal.</p>
+            <p class="vc-desc">Cât de compact sau alungit</p>
           </div>
-          <!-- Wing — hidden for 2/4 pante -->
           <div class="vol-card" id="wingWCard" style="display:none">
-            <div class="vol-card-top">
-              <span class="vol-card-label">Lățime aripă<br>secundară</span>
-              <span class="vol-card-val" id="vWingW">5.0 <em>m</em></span>
+            <div class="vc-top">
+              <span class="vc-label">Lățime aripă<br>secundară</span>
+              <span class="vc-val" id="vWingW">5.0 <em>m</em></span>
             </div>
             <input type="range" id="slWingW" min="2" max="14" step="0.1" value="5.0" oninput="onVol()">
-            <p class="vol-card-desc">Disponibil doar pentru formele în L și T.</p>
+            <p class="vc-desc">Forme L și T</p>
           </div>
           <div class="vol-card" id="wingDCard" style="display:none">
-            <div class="vol-card-top">
-              <span class="vol-card-label">Lungime aripă<br>secundară</span>
-              <span class="vol-card-val" id="vWingD">10.0 <em>m</em></span>
+            <div class="vc-top">
+              <span class="vc-label">Lungime aripă<br>secundară</span>
+              <span class="vc-val" id="vWingD">10.0 <em>m</em></span>
             </div>
             <input type="range" id="slWingD" min="2" max="20" step="0.1" value="10.0" oninput="onVol()">
-            <p class="vol-card-desc">Controlează cât de mult se prelungește volumul secundar.</p>
+            <p class="vc-desc">Extinderea volumului secundar</p>
           </div>
-          <!-- Streașină — full width -->
           <div class="vol-card full">
-            <div class="vol-card-top">
-              <span class="vol-card-label">Streașina<br>acoperișului</span>
-              <span class="vol-card-val" id="vOverhang">0.5 <em>m</em></span>
+            <div class="vc-top">
+              <span class="vc-label">Streașina<br>acoperișului</span>
+              <span class="vc-val" id="vOverhang">0.50 <em>m</em></span>
             </div>
             <input type="range" id="slOverhang" min="0" max="1.5" step="0.05" value="0.5" oninput="onVol()">
-            <p class="vol-card-desc">Controlează cât depășește acoperișul peretele exterior.</p>
+            <p class="vc-desc">Depășirea acoperișului față de pereți</p>
           </div>
         </div>
-        <div id="shapeNote" class="shape-note" style="display:none">
-          Forma în L unește corpul principal cu o aripă laterală. Aici apare o dolie și o intersecție de acoperiș care trebuie urmărită atent la montaj.
+        <div id="shapeNote" class="shape-note-dark" style="display:none">
+          Forma în L unește corpul principal cu o aripă laterală.
         </div>
-        <p class="step-info-note" id="shapeInfoNote">Forma simplă folosește doar corpul principal. Acesta rămâne referința pentru comparația cu geometriile în L și T.</p>
-        <button class="cta-next" onclick="toggleStep(3)">Continuă la material →</button>
+      </div>
+      <div class="sp-foot">
+        <button class="btn-back" onclick="goStep(1)">← Înapoi</button>
+        <button class="btn-next" onclick="goStep(3)">Material →</button>
       </div>
     </div>
 
-    <!-- Step 3 -->
-    <div class="step" id="step3">
-      <div class="step-header" onclick="toggleStep(3)">
-        <div class="step-left">
-          <div class="step-num">3</div>
-          <div class="step-text"><h3>Material &amp; Culoare</h3><p id="sub3">Sindrila Bituminoasă · Black Sable</p></div>
-        </div>
-        <div class="step-toggle">›</div>
+    <!-- ── STEP 3: Material ── -->
+    <div class="sp" id="sp-3">
+      <div class="sp-head">
+        <div class="sp-num">Pasul 3 din 5</div>
+        <h2>Material &amp; Culoare</h2>
+        <p id="sub3">Sindrila Bituminoasă · Black Sable</p>
       </div>
-      <div class="step-body">
-        <div class="mat-type-tabs" id="matTypeTabs"></div>
-        <div id="matColorGrid"></div>
+      <div class="sp-body">
+        <div class="mat-tabs" id="matTypeTabs"></div>
+        <div class="color-grid" id="matColorGrid"></div>
+
+        <!-- Reference project photos -->
+        <div class="ref-strip-label">Proiecte realizate</div>
+        <div class="ref-strip" id="ref-photos">
+          <div class="ref-photo"><img src="img/499203916_1122643106545778_906899954332030784_n.jpg" alt="Proiect Dikons" loading="lazy"></div>
+          <div class="ref-photo"><img src="img/499411465_1122677629875659_6231657547559639670_n.jpg" alt="Proiect Dikons" loading="lazy"></div>
+          <div class="ref-photo"><img src="img/493981050_1104578258352263_3708228480486209909_n.jpg" alt="Proiect Dikons" loading="lazy"></div>
+        </div>
+      </div>
+      <div class="sp-foot">
+        <button class="btn-back" onclick="goStep(2)">← Înapoi</button>
+        <button class="btn-next" onclick="goStep(4)">Scurgere →</button>
       </div>
     </div>
 
-    <!-- Step 4 -->
-    <div class="step" id="step4">
-      <div class="step-header" onclick="toggleStep(4)">
-        <div class="step-left">
-          <div class="step-num">4</div>
-          <div class="step-text"><h3>Sistem de Scurgere</h3><p id="sub4">Dezactivat</p></div>
-        </div>
-        <div class="step-toggle">›</div>
+    <!-- ── STEP 4: Scurgere ── -->
+    <div class="sp" id="sp-4">
+      <div class="sp-head">
+        <div class="sp-num">Pasul 4 din 5</div>
+        <h2>Sistem de scurgere</h2>
+        <p id="sub4">Dezactivat</p>
       </div>
-      <div class="step-body">
-        <div class="toggle-row">
-          <label>Activează sistem de scurgere</label>
+      <div class="sp-body">
+        <div class="drain-toggle-row">
+          <label>Activează jgheaburi &amp; burlane</label>
           <div class="tog" id="drainToggle" onclick="toggleDrain()"><div class="tog-thumb"></div></div>
         </div>
         <div id="drainColors" style="display:none">
-          <p style="font-size:12px;color:#888;margin-bottom:6px;">Culoare burlane &amp; jgheaburi</p>
-          <div class="color-row">
+          <p class="drain-label">Culoare burlane &amp; jgheaburi</p>
+          <div class="drain-swatches">
             <div class="cswatch active" style="background:#5a5a5a" onclick="selectDrainColor('#5a5a5a',this)"></div>
+            <div class="cswatch" style="background:#2b2b2b" onclick="selectDrainColor('#2b2b2b',this)"></div>
             <div class="cswatch" style="background:#8b7355" onclick="selectDrainColor('#8b7355',this)"></div>
             <div class="cswatch" style="background:#c0c0c0" onclick="selectDrainColor('#c0c0c0',this)"></div>
             <div class="cswatch" style="background:#8b0000" onclick="selectDrainColor('#8b0000',this)"></div>
@@ -344,29 +650,57 @@
           </div>
         </div>
       </div>
-    </div>
-
-    <!-- Step 5 -->
-    <div class="step" id="step5">
-      <div class="step-header" onclick="toggleStep(5)">
-        <div class="step-left">
-          <div class="step-num">5</div>
-          <div class="step-text"><h3>Trimite Configurația</h3><p>Primești oferta în 24h</p></div>
-        </div>
-        <div class="step-toggle">›</div>
-      </div>
-      <div class="step-body">
-        <div class="estimate">
-          <div class="elabel">Estimare orientativă</div>
-          <div class="eprice" id="estimatePrice">— lei</div>
-          <div class="enote">Prețul final depinde de acces, pantă reală și cantitate exactă de material</div>
-        </div>
-        <button class="cta-btn" onclick="sendConfig()">Solicită oferta gratuită →</button>
+      <div class="sp-foot">
+        <button class="btn-back" onclick="goStep(3)">← Înapoi</button>
+        <button class="btn-next" onclick="goStep(5)">Ofertă →</button>
       </div>
     </div>
 
-  </div>
-</div>
+    <!-- ── STEP 5: Trimite ── -->
+    <div class="sp" id="sp-5">
+      <div class="sp-head">
+        <div class="sp-num">Pasul 5 din 5</div>
+        <h2>Solicită ofertă</h2>
+        <p>Primești oferta în max 2 ore</p>
+      </div>
+      <div class="sp-body">
+        <div class="price-banner">
+          <div><div class="pb-text">Estimare suprafață</div><div class="pb-price" id="estimatePriceBig">— lei</div></div>
+          <div style="text-align:right"><div class="pb-text">59 €/m² · la cheie</div><div class="pb-price" id="estimateEuro">—</div></div>
+        </div>
+        <div class="estimate-box">
+          <div class="est-item">
+            <div class="est-lbl">Suprafață</div>
+            <div class="est-val" id="estimateAreaBig">— m²</div>
+          </div>
+          <div class="est-item">
+            <div class="est-lbl">Material selectat</div>
+            <div class="est-val" style="font-size:14px" id="est-mat">—</div>
+          </div>
+        </div>
+        <div class="contact-form">
+          <div class="cf-row">
+            <div class="cf-group"><label>Prenume</label><input type="text" id="cf-name" placeholder="Ion"></div>
+            <div class="cf-group"><label>Telefon</label><input type="tel" id="cf-tel" placeholder="0784 00 731"></div>
+          </div>
+          <div class="cf-group">
+            <label>Localitate</label>
+            <input type="text" id="cf-loc" placeholder="Chișinău">
+          </div>
+          <div class="cf-group">
+            <label>Mesaj (opțional)</label>
+            <textarea id="cf-msg" placeholder="Detalii suplimentare..."></textarea>
+          </div>
+        </div>
+      </div>
+      <div class="sp-foot">
+        <button class="btn-back" onclick="goStep(4)">← Înapoi</button>
+        <button class="btn-next" onclick="sendConfig()" style="background:#16a34a">Trimite configurația →</button>
+      </div>
+    </div>
+
+  </div><!-- /config-panel -->
+</div><!-- /layout -->
 
 <script>
 // ═══════════════════════════════════════════
@@ -441,15 +775,14 @@ window.addEventListener('load', function () {
   renderer.setSize(s0.w, s0.h);
 
   var scene = new THREE.Scene();
-  scene.background = new THREE.Color(0xf0ebe0);
-  scene.fog = new THREE.Fog(0xf0ebe0, 40, 90);
+  scene.background = new THREE.Color(0x1a1714);
+  scene.fog = new THREE.Fog(0x1a1714, 45, 95);
 
   var camera = new THREE.PerspectiveCamera(40, s0.w / s0.h, 0.1, 200);
 
-  // Lights — sun from front-right for specular highlight on front slope
   scene.add(new THREE.HemisphereLight(0xfff4e0, 0x88aa66, 1.4));
   var sun = new THREE.DirectionalLight(0xfff6f0, 2.2);
-  sun.position.set(10, 22, -14);  // front-right → specular on front slope visible to camera
+  sun.position.set(10, 22, -14);
   sun.castShadow = true;
   sun.shadow.mapSize.set(2048, 2048);
   Object.assign(sun.shadow.camera, { near:1, far:80, left:-30, right:30, top:30, bottom:-30 });
@@ -458,16 +791,14 @@ window.addEventListener('load', function () {
   var fill = new THREE.DirectionalLight(0xd4e8ff, 0.7);
   fill.position.set(-14, 10, 12); scene.add(fill);
 
-  // Ground
   var ground = new THREE.Mesh(
     new THREE.PlaneGeometry(80, 80),
-    new THREE.MeshLambertMaterial({ color: 0xbad49a })
+    new THREE.MeshLambertMaterial({ color: 0x2a2420 })
   );
   ground.rotation.x = -Math.PI / 2;
   ground.receiveShadow = true;
   scene.add(ground);
 
-  // ── Orbit ──────────────────────────────────────────────
   var orb = { theta: -0.5, phi: 0.95, radius: 32, tx:0, ty:2.5, tz:0 };
   function orbCam() {
     camera.position.set(
@@ -479,9 +810,9 @@ window.addEventListener('load', function () {
   }
   orbCam();
 
-  // ── Orbit controls — mouse + touch ────────────────────
   var drag=false, lx=0, ly=0;
-  canvas.addEventListener('mousedown', function(e){ drag=true; lx=e.clientX; ly=e.clientY; });
+  canvas.addEventListener('mousedown', function(e){ drag=true; lx=e.clientX; ly=e.clientY;
+    document.getElementById('v-hint').style.opacity='0'; });
   window.addEventListener('mouseup',   function(){ drag=false; });
   canvas.addEventListener('mousemove', function(e){
     if (!drag) return;
@@ -494,17 +825,13 @@ window.addEventListener('load', function () {
     orbCam(); e.preventDefault();
   }, {passive:false});
 
-  // Touch: single-finger rotate, two-finger pinch zoom
-  // touch-action:none on canvas handles preventDefault at CSS level — no JS preventDefault needed
   var tPos = {}, tPinchDist = 0;
   canvas.addEventListener('touchstart', function(e){
     Array.from(e.changedTouches).forEach(function(t){ tPos[t.identifier]={x:t.clientX,y:t.clientY}; });
     if (e.touches.length === 2) {
-      tPinchDist = Math.hypot(
-        e.touches[0].clientX-e.touches[1].clientX,
-        e.touches[0].clientY-e.touches[1].clientY
-      );
+      tPinchDist = Math.hypot(e.touches[0].clientX-e.touches[1].clientX, e.touches[0].clientY-e.touches[1].clientY);
     }
+    document.getElementById('v-hint').style.opacity='0';
   }, {passive:true});
   canvas.addEventListener('touchend', function(e){
     Array.from(e.changedTouches).forEach(function(t){ delete tPos[t.identifier]; });
@@ -513,21 +840,11 @@ window.addEventListener('load', function () {
   canvas.addEventListener('touchmove', function(e){
     if (e.touches.length === 1) {
       var t = e.touches[0], prev = tPos[t.identifier];
-      if (prev) {
-        orb.theta -= (t.clientX-prev.x)*0.010;
-        orb.phi = Math.max(0.15, Math.min(1.45, orb.phi-(t.clientY-prev.y)*0.010));
-        orbCam();
-      }
+      if (prev) { orb.theta -= (t.clientX-prev.x)*0.010; orb.phi = Math.max(0.15, Math.min(1.45, orb.phi-(t.clientY-prev.y)*0.010)); orbCam(); }
       tPos[t.identifier] = {x:t.clientX, y:t.clientY};
     } else if (e.touches.length === 2) {
-      var dist = Math.hypot(
-        e.touches[0].clientX-e.touches[1].clientX,
-        e.touches[0].clientY-e.touches[1].clientY
-      );
-      if (tPinchDist > 0) {
-        orb.radius = Math.max(6, Math.min(50, orb.radius-(dist-tPinchDist)*0.04));
-        orbCam();
-      }
+      var dist = Math.hypot(e.touches[0].clientX-e.touches[1].clientX, e.touches[0].clientY-e.touches[1].clientY);
+      if (tPinchDist > 0) { orb.radius = Math.max(6, Math.min(50, orb.radius-(dist-tPinchDist)*0.04)); orbCam(); }
       tPinchDist = dist;
       Array.from(e.changedTouches).forEach(function(t){ tPos[t.identifier]={x:t.clientX,y:t.clientY}; });
     }
@@ -537,23 +854,18 @@ window.addEventListener('load', function () {
     var s=sz(); renderer.setSize(s.w,s.h); camera.aspect=s.w/s.h; camera.updateProjectionMatrix();
   });
 
-  // ── Canvas tile texture (Tigla Modulara) ───────────────
   function drawTileCanvas(ctx, w, h, cs) {
     var nC=7, nR=6, tW=w/nC, tH=h/nR;
-    ctx.fillStyle='hsl('+cs.h+','+cs.s+'%,'+(cs.lo-3)+'%)';
-    ctx.fillRect(0,0,w,h);
+    ctx.fillStyle='hsl('+cs.h+','+cs.s+'%,'+(cs.lo-3)+'%)'; ctx.fillRect(0,0,w,h);
     for (var r=0; r<nR+2; r++) {
       var oy=r*tH, ox=(r%2)*(tW/2);
       for (var c=-1; c<nC+2; c++) {
-        var ox2=c*tW+ox, lv=((r*3+c*7)%5)-2;
-        var mid=(cs.lo+cs.hi)/2+lv;
-        ctx.fillStyle='hsl('+cs.h+','+cs.s+'%,'+mid+'%)';
-        ctx.fillRect(ox2+1.5, oy+1.5, tW-3, tH-3);
+        var ox2=c*tW+ox, lv=((r*3+c*7)%5)-2, mid=(cs.lo+cs.hi)/2+lv;
+        ctx.fillStyle='hsl('+cs.h+','+cs.s+'%,'+mid+'%)'; ctx.fillRect(ox2+1.5, oy+1.5, tW-3, tH-3);
         var sg=ctx.createLinearGradient(0,oy+tH-5,0,oy+tH);
         sg.addColorStop(0,'rgba(0,0,0,0)'); sg.addColorStop(1,'rgba(0,0,0,0.35)');
         ctx.fillStyle=sg; ctx.fillRect(ox2+1.5,oy+tH-5,tW-3,5);
-        ctx.fillStyle='rgba(255,255,255,0.15)';
-        ctx.fillRect(ox2+1.5,oy+1.5,tW-3,2.5);
+        ctx.fillStyle='rgba(255,255,255,0.15)'; ctx.fillRect(ox2+1.5,oy+1.5,tW-3,2.5);
       }
     }
   }
@@ -563,66 +875,50 @@ window.addEventListener('load', function () {
     var t=new THREE.CanvasTexture(cv); t.wrapS=t.wrapT=THREE.RepeatWrapping; return t;
   }
 
-  // ── Texture cache ──────────────────────────────────────
   var TEXS = {};
-  // Canvas fallback textures for tigla (used until PBR maps load)
   MAT_CATALOG.tigla.colors.forEach(function(cs) { TEXS[cs.id] = makeTileTex(cs); });
   var TL = new THREE.TextureLoader();
-  window._TEXS = TEXS;
-  window._TL   = TL;
+  window._TEXS = TEXS; window._TL = TL;
 
-  // ── PBR maps loader (shared helper) ────────────────────
   function loadPbrMaps(baseDir, prefix, maps, onAllLoaded) {
     var loaded = 0;
-    var pairs = [
-      ['color',  prefix+'_Color.jpg'],
-      ['normal', prefix+'_NormalGL.jpg'],
-      ['rough',  prefix+'_Roughness.jpg']
-    ];
-    var tl = new THREE.TextureLoader();
-    pairs.forEach(function(pair) {
-      tl.load(baseDir+pair[1], function(t) {
-        t.wrapS = t.wrapT = THREE.RepeatWrapping;
-        maps[pair[0]] = t;
+    [['color',prefix+'_Color.jpg'],['normal',prefix+'_NormalGL.jpg'],['rough',prefix+'_Roughness.jpg']].forEach(function(pair) {
+      new THREE.TextureLoader().load(baseDir+pair[1], function(t) {
+        t.wrapS = t.wrapT = THREE.RepeatWrapping; maps[pair[0]] = t;
         if (++loaded === 3) onAllLoaded();
       });
     });
   }
 
-  // Țiglă Modulară — RoofingTiles013A
-  var TIGLA_MAPS = { color: null, normal: null, rough: null };
+  var TIGLA_MAPS = { color:null, normal:null, rough:null };
   window._TIGLA_MAPS = TIGLA_MAPS;
   loadPbrMaps('tex/tigla/', 'RoofingTiles013A_1K-JPG', TIGLA_MAPS, function() {
-    if (S.matType === 'tigla' && window._rebuild) window._rebuild();
+    if (S.matType==='tigla' && window._rebuild) window._rebuild();
   });
 
-  // Sindrila Bituminoasă — WoodSiding012
-  var SINDRILA_MAPS = { color: null, normal: null, rough: null };
+  var SINDRILA_MAPS = { color:null, normal:null, rough:null };
   window._SINDRILA_MAPS = SINDRILA_MAPS;
   loadPbrMaps('tex/sindrila/', 'WoodSiding012_1K-JPG', SINDRILA_MAPS, function() {
-    if (S.matType === 'sindrila' && window._rebuild) window._rebuild();
+    if (S.matType==='sindrila' && window._rebuild) window._rebuild();
   });
 
-  // ── Geometry builder ───────────────────────────────────
   function GeoBuilder() { this.p=[]; this.n=[]; this.u=[]; this.i=[]; }
   GeoBuilder.prototype.norm = function(a,b,c) {
-    var ax=b[0]-a[0],ay=b[1]-a[1],az=b[2]-a[2];
-    var bx=c[0]-a[0],by=c[1]-a[1],bz=c[2]-a[2];
+    var ax=b[0]-a[0],ay=b[1]-a[1],az=b[2]-a[2],bx=c[0]-a[0],by=c[1]-a[1],bz=c[2]-a[2];
     var nx=ay*bz-az*by, ny=az*bx-ax*bz, nz=ax*by-ay*bx;
-    var l=Math.sqrt(nx*nx+ny*ny+nz*nz)||1;
-    return [nx/l,ny/l,nz/l];
+    var l=Math.sqrt(nx*nx+ny*ny+nz*nz)||1; return [nx/l,ny/l,nz/l];
   };
-  GeoBuilder.prototype.quad = function(p0,p1,p2,p3,uMax,vMax) {
+  GeoBuilder.prototype.quad = function(p0,p1,p2,p3,uM,vM) {
     var n=this.norm(p0,p1,p3), b=this.p.length/3;
     [p0,p1,p2,p3].forEach(function(p){this.p.push(p[0],p[1],p[2]);},this);
-    this.u.push(0,0, uMax,0, uMax,vMax, 0,vMax);
+    this.u.push(0,0, uM,0, uM,vM, 0,vM);
     for(var i=0;i<4;i++) this.n.push(n[0],n[1],n[2]);
     this.i.push(b,b+1,b+2, b,b+2,b+3);
   };
-  GeoBuilder.prototype.tri = function(p0,p1,p2,uv0,uv1,uv2) {
+  GeoBuilder.prototype.tri = function(p0,p1,p2,u0,u1,u2) {
     var n=this.norm(p0,p1,p2), b=this.p.length/3;
     [p0,p1,p2].forEach(function(p){this.p.push(p[0],p[1],p[2]);},this);
-    [uv0,uv1,uv2].forEach(function(u){this.u.push(u[0],u[1]);},this);
+    [u0,u1,u2].forEach(function(u){this.u.push(u[0],u[1]);},this);
     for(var i=0;i<3;i++) this.n.push(n[0],n[1],n[2]);
     this.i.push(b,b+1,b+2);
   };
@@ -631,13 +927,11 @@ window.addEventListener('load', function () {
     g.setAttribute('position',new THREE.Float32BufferAttribute(this.p,3));
     g.setAttribute('normal',  new THREE.Float32BufferAttribute(this.n,3));
     g.setAttribute('uv',      new THREE.Float32BufferAttribute(this.u,2));
-    g.setIndex(this.i);
-    return g;
+    g.setIndex(this.i); return g;
   };
 
-  // UV helpers — tigla tiles slightly denser than sindrila shingles
-  function uvU(d) { return d / (S.matType==='tigla' ? 2.1 : 2.0); }
-  function uvV(s) { return s / 1.5; }
+  function uvU(d) { return d/(S.matType==='tigla'?2.1:2.0); }
+  function uvV(s) { return s/1.5; }
 
   function gableGeo(W,D,wH,rH,ov) {
     var gb=new GeoBuilder(), hw=W/2+ov, hd=D/2+ov, ry=wH, py=wH+rH;
@@ -648,7 +942,6 @@ window.addEventListener('load', function () {
     gb.tri([-hw,ry,hd],[hw,ry,hd],[0,py,hd],[0,0],[1,0],[0.5,1]);
     return gb.build();
   }
-
   function hipGeo(W,D,wH,rH,ov) {
     var gb=new GeoBuilder(), hw=W/2+ov, hd=D/2+ov, ry=wH, py=wH+rH;
     var rz=Math.max(0.2,hd-hw), uS=uvU(hd*2), vS=uvV(Math.sqrt(hw*hw+rH*rH));
@@ -659,46 +952,19 @@ window.addEventListener('load', function () {
     return gb.build();
   }
 
-  // ── Materials ──────────────────────────────────────────
   function roofMat() {
     if (S.matType === 'tigla') {
-      var col = findColor('tigla', S.matColor);
-      var tint = col ? col.tint : 0x888888;
-      var hasPBR = TIGLA_MAPS.color && TIGLA_MAPS.normal && TIGLA_MAPS.rough;
-      return new THREE.MeshStandardMaterial({
-        map:          hasPBR ? TIGLA_MAPS.color  : (TEXS[S.matColor] || null),
-        normalMap:    hasPBR ? TIGLA_MAPS.normal : null,
-        normalScale:  new THREE.Vector2(1.5, 1.5),
-        roughnessMap: hasPBR ? TIGLA_MAPS.rough  : null,
-        color:        hasPBR ? tint : 0xffffff,
-        roughness:    0.82,
-        metalness:    0.0,
-        side:         THREE.DoubleSide
-      });
+      var col=findColor('tigla',S.matColor), tint=col?col.tint:0x888888;
+      var hasPBR=TIGLA_MAPS.color&&TIGLA_MAPS.normal&&TIGLA_MAPS.rough;
+      return new THREE.MeshStandardMaterial({ map:hasPBR?TIGLA_MAPS.color:(TEXS[S.matColor]||null), normalMap:hasPBR?TIGLA_MAPS.normal:null, normalScale:new THREE.Vector2(1.5,1.5), roughnessMap:hasPBR?TIGLA_MAPS.rough:null, color:hasPBR?tint:0xffffff, roughness:0.82, metalness:0.0, side:THREE.DoubleSide });
     }
-    // sindrila — PBR WoodSiding012 + per-color tint
-    var col2 = findColor('sindrila', S.matColor);
-    var tint2 = col2 ? col2.tint : 0x888888;
-    var hasPBR2 = SINDRILA_MAPS.color && SINDRILA_MAPS.normal && SINDRILA_MAPS.rough;
-    return new THREE.MeshStandardMaterial({
-      map:          hasPBR2 ? SINDRILA_MAPS.color  : (TEXS[S.matColor] || null),
-      normalMap:    hasPBR2 ? SINDRILA_MAPS.normal : null,
-      normalScale:  new THREE.Vector2(1.2, 1.2),
-      roughnessMap: hasPBR2 ? SINDRILA_MAPS.rough  : null,
-      color:        hasPBR2 ? tint2 : 0xffffff,
-      roughness:    0.55,
-      metalness:    0.05,
-      side:         THREE.DoubleSide
-    });
+    var col2=findColor('sindrila',S.matColor), tint2=col2?col2.tint:0x888888;
+    var hasPBR2=SINDRILA_MAPS.color&&SINDRILA_MAPS.normal&&SINDRILA_MAPS.rough;
+    return new THREE.MeshStandardMaterial({ map:hasPBR2?SINDRILA_MAPS.color:(TEXS[S.matColor]||null), normalMap:hasPBR2?SINDRILA_MAPS.normal:null, normalScale:new THREE.Vector2(1.2,1.2), roughnessMap:hasPBR2?SINDRILA_MAPS.rough:null, color:hasPBR2?tint2:0xffffff, roughness:0.55, metalness:0.05, side:THREE.DoubleSide });
   }
+  function wallMat() { return new THREE.MeshStandardMaterial({ color:0xf4f0ea, roughness:0.6, metalness:0 }); }
 
-  function wallMat() {
-    return new THREE.MeshStandardMaterial({ color:0xf4f0ea, roughness:0.6, metalness:0 });
-  }
-
-  // ── House ──────────────────────────────────────────────
   var houseGroup = null;
-
   function disposeGroup(g) {
     g.traverse(function(o){
       if (o.geometry) o.geometry.dispose();
@@ -706,342 +972,250 @@ window.addEventListener('load', function () {
     });
   }
 
-  function addWinDoor(bw, bd, wH, px, pz, group) {
-    var wMat = new THREE.MeshStandardMaterial({ color:0xfcf8f3, roughness:0.45 });
-    var gMat = new THREE.MeshStandardMaterial({ color:0x9bbcce, roughness:0.05, metalness:0.12, transparent:true, opacity:0.68 });
-    var dMat = new THREE.MeshStandardMaterial({ color:0x6b3318, roughness:0.75 });
-    var fZ   = pz - bd/2 - 0.06;  // 6 cm in front of front wall
-    var wY   = wH * 0.57;
-    var ox   = Math.min(bw * 0.28, bw/2 - 0.95);
-
-    // Door frame + panel
-    var df = new THREE.Mesh(new THREE.BoxGeometry(1.04, 2.2, 0.13), wMat);
-    df.position.set(px, 1.1, fZ); df.castShadow=true; group.add(df);
-    var dp = new THREE.Mesh(new THREE.BoxGeometry(0.9, 2.1, 0.1), dMat);
-    dp.position.set(px, 1.05, fZ - 0.04); group.add(dp); // 4cm in front of frame → visible
-
-
-    // Front windows (if wide enough)
-    if (bw > 3.5) {
-      [-ox, ox].forEach(function(dx) {
-        var wf = new THREE.Mesh(new THREE.BoxGeometry(1.24, 1.17, 0.13), wMat);
-        wf.position.set(px+dx, wY, fZ); wf.castShadow=true; group.add(wf);
-        var wg = new THREE.Mesh(new THREE.BoxGeometry(1.1, 1.05, 0.1), gMat);
-        wg.position.set(px+dx, wY, fZ); group.add(wg);
-      });
-    }
-
-    // Side windows (one per side wall)
-    [[px - bw/2 - 0.06, pz], [px + bw/2 + 0.06, pz]].forEach(function(pos) {
-      var sf = new THREE.Mesh(new THREE.BoxGeometry(0.13, 1.07, 1.14), wMat);
-      sf.position.set(pos[0], wY, pos[1]); sf.castShadow=true; group.add(sf);
-      var sg = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.95, 1.0), gMat);
-      sg.position.set(pos[0], wY, pos[1]); group.add(sg);
-    });
+  function addWinDoor(bw,bd,wH,px,pz,group) {
+    var wMat=new THREE.MeshStandardMaterial({color:0xfcf8f3,roughness:0.45});
+    var gMat=new THREE.MeshStandardMaterial({color:0x9bbcce,roughness:0.05,metalness:0.12,transparent:true,opacity:0.68});
+    var dMat=new THREE.MeshStandardMaterial({color:0x6b3318,roughness:0.75});
+    var fZ=pz-bd/2-0.06, wY=wH*0.57, ox=Math.min(bw*0.28,bw/2-0.95);
+    var df=new THREE.Mesh(new THREE.BoxGeometry(1.04,2.2,0.13),wMat); df.position.set(px,1.1,fZ); df.castShadow=true; group.add(df);
+    var dp=new THREE.Mesh(new THREE.BoxGeometry(0.9,2.1,0.1),dMat); dp.position.set(px,1.05,fZ-0.04); group.add(dp);
+    if (bw>3.5) { [-ox,ox].forEach(function(dx){ var wf=new THREE.Mesh(new THREE.BoxGeometry(1.24,1.17,0.13),wMat); wf.position.set(px+dx,wY,fZ); wf.castShadow=true; group.add(wf); var wg=new THREE.Mesh(new THREE.BoxGeometry(1.1,1.05,0.1),gMat); wg.position.set(px+dx,wY,fZ); group.add(wg); }); }
+    [[px-bw/2-0.06,pz],[px+bw/2+0.06,pz]].forEach(function(pos){ var sf=new THREE.Mesh(new THREE.BoxGeometry(0.13,1.07,1.14),wMat); sf.position.set(pos[0],wY,pos[1]); sf.castShadow=true; group.add(sf); var sg=new THREE.Mesh(new THREE.BoxGeometry(0.1,0.95,1.0),gMat); sg.position.set(pos[0],wY,pos[1]); group.add(sg); });
   }
-
-  function addBox(bw,bd,px,pz,group,skipDetails) {
-    var wH=S.wallH;
-    var m=new THREE.Mesh(new THREE.BoxGeometry(bw,wH,bd), wallMat());
-    m.position.set(px,wH/2,pz); m.castShadow=m.receiveShadow=true; group.add(m);
-    if (!skipDetails) addWinDoor(bw, bd, wH, px, pz, group);
+  function addBox(bw,bd,px,pz,group,skip) {
+    var m=new THREE.Mesh(new THREE.BoxGeometry(bw,S.wallH,bd),wallMat()); m.position.set(px,S.wallH/2,pz); m.castShadow=m.receiveShadow=true; group.add(m);
+    if (!skip) addWinDoor(bw,bd,S.wallH,px,pz,group);
   }
-
-  function addRoof(geo,px,pz,group) {
-    var m=new THREE.Mesh(geo, roofMat());
-    m.position.set(px,0,pz); m.castShadow=m.receiveShadow=true; group.add(m);
-  }
-  // addRoofY: same but rotated 90° around Y so ridge runs along X (slope faces front)
-  function addRoofY(geo,px,pz,group) {
-    var m=new THREE.Mesh(geo, roofMat());
-    m.position.set(px,0,pz); m.rotation.y=Math.PI/2; m.castShadow=m.receiveShadow=true; group.add(m);
-  }
-
+  function addRoof(geo,px,pz,group) { var m=new THREE.Mesh(geo,roofMat()); m.position.set(px,0,pz); m.castShadow=m.receiveShadow=true; group.add(m); }
+  function addRoofY(geo,px,pz,group) { var m=new THREE.Mesh(geo,roofMat()); m.position.set(px,0,pz); m.rotation.y=Math.PI/2; m.castShadow=m.receiveShadow=true; group.add(m); }
   function addGutters(bw,bd,px,pz,group) {
     if (!S.drainage) return;
     var gm=new THREE.MeshLambertMaterial({color:new THREE.Color(S.drainColor)});
     var gr=0.065, ey=S.wallH-0.06, hw=bw/2+S.overhang-0.06, hd=bd/2+S.overhang-0.06;
-    [-hd+pz, hd+pz].forEach(function(z){
-      var m=new THREE.Mesh(new THREE.CylinderGeometry(gr,gr,bw+S.overhang*2,8),gm);
-      m.rotation.z=Math.PI/2; m.position.set(px,ey,z); group.add(m);
-    });
-    [[-hw,-hd],[hw,-hd],[-hw,hd],[hw,hd]].forEach(function(c){
-      var m=new THREE.Mesh(new THREE.CylinderGeometry(0.04,0.04,S.wallH+0.1,8),gm);
-      m.position.set(c[0]+px,(S.wallH+0.1)/2,c[1]+pz); group.add(m);
-    });
+    [-hd+pz,hd+pz].forEach(function(z){ var m=new THREE.Mesh(new THREE.CylinderGeometry(gr,gr,bw+S.overhang*2,8),gm); m.rotation.z=Math.PI/2; m.position.set(px,ey,z); group.add(m); });
+    [[-hw,-hd],[hw,-hd],[-hw,hd],[hw,hd]].forEach(function(c){ var m=new THREE.Mesh(new THREE.CylinderGeometry(0.04,0.04,S.wallH+0.1,8),gm); m.position.set(c[0]+px,(S.wallH+0.1)/2,c[1]+pz); group.add(m); });
   }
-
-  function ridgeH(W) { return W * 0.22; }  // ~24° pitch
+  function ridgeH(W) { return W * 0.22; }
 
   function buildHouse() {
     if (houseGroup) { disposeGroup(houseGroup); scene.remove(houseGroup); }
     houseGroup = new THREE.Group();
-    var mW=S.mainW, mD=S.mainD, wW=S.wingW, wD=S.wingD, ov=S.overhang, wH=S.wallH;
-    // platFootprints: list of {w,d,px,pz} used to build the shape-specific foundation
-    var platFootprints = [];
-
-    if (S.shape === '2pante') {
-      platFootprints = [{w:mW, d:mD, px:0, pz:0}];
-      addBox(mW,mD,0,0,houseGroup);
-      addRoofY(gableGeo(mD,mW,wH,ridgeH(mD),ov),0,0,houseGroup);
-      addGutters(mW,mD,0,0,houseGroup);
-
-    } else if (S.shape === '4pante') {
-      platFootprints = [{w:mW, d:mD, px:0, pz:0}];
-      addBox(mW,mD,0,0,houseGroup);
-      addRoofY(hipGeo(mD,mW,wH,ridgeH(mD),ov),0,0,houseGroup);
-      addGutters(mW,mD,0,0,houseGroup);
-
-    } else if (S.shape === 'L') {
-      var px1=-(wW/2), pz1=0;
-      var px2=(mW+wW)/2-(wW/2), pz2=(mD-wD)/2;
-      platFootprints = [{w:mW, d:mD, px:px1, pz:pz1}, {w:wW, d:wD, px:px2, pz:pz2}];
-      addBox(mW,mD,px1,pz1,houseGroup);
-      addBox(wW,wD,px2,pz2,houseGroup,true);
-      addRoofY(hipGeo(mD,mW,wH,ridgeH(mD),ov),px1,pz1,houseGroup);
-      addRoofY(hipGeo(wD,wW,wH,ridgeH(wD),ov),px2,pz2,houseGroup);
+    var mW=S.mainW,mD=S.mainD,wW=S.wingW,wD=S.wingD,ov=S.overhang,wH=S.wallH;
+    var platFP=[];
+    if (S.shape==='2pante') {
+      platFP=[{w:mW,d:mD,px:0,pz:0}]; addBox(mW,mD,0,0,houseGroup); addRoofY(gableGeo(mD,mW,wH,ridgeH(mD),ov),0,0,houseGroup); addGutters(mW,mD,0,0,houseGroup);
+    } else if (S.shape==='4pante') {
+      platFP=[{w:mW,d:mD,px:0,pz:0}]; addBox(mW,mD,0,0,houseGroup); addRoofY(hipGeo(mD,mW,wH,ridgeH(mD),ov),0,0,houseGroup); addGutters(mW,mD,0,0,houseGroup);
+    } else if (S.shape==='L') {
+      var px1=-(wW/2),pz1=0,px2=(mW+wW)/2-(wW/2),pz2=(mD-wD)/2;
+      platFP=[{w:mW,d:mD,px:px1,pz:pz1},{w:wW,d:wD,px:px2,pz:pz2}];
+      addBox(mW,mD,px1,pz1,houseGroup); addBox(wW,wD,px2,pz2,houseGroup,true);
+      addRoofY(hipGeo(mD,mW,wH,ridgeH(mD),ov),px1,pz1,houseGroup); addRoofY(hipGeo(wD,wW,wH,ridgeH(wD),ov),px2,pz2,houseGroup);
       addGutters(mW,mD,px1,pz1,houseGroup);
-
-    } else if (S.shape === 'T') {
-      var px1=0, pz1=(wD/2);
-      var px2=0, pz2=-(mD/2);
-      platFootprints = [{w:mW, d:mD, px:px1, pz:pz1}, {w:wW, d:wD, px:px2, pz:pz2}];
-      addBox(mW,mD,px1,pz1,houseGroup);
-      addBox(wW,wD,px2,pz2,houseGroup,true);
-      addRoofY(hipGeo(mD,mW,wH,ridgeH(mD),ov),px1,pz1,houseGroup);
-      addRoofY(hipGeo(wD,wW,wH,ridgeH(wD),ov),px2,pz2,houseGroup);
+    } else if (S.shape==='T') {
+      var px1=0,pz1=wD/2,px2=0,pz2=-(mD/2);
+      platFP=[{w:mW,d:mD,px:px1,pz:pz1},{w:wW,d:wD,px:px2,pz:pz2}];
+      addBox(mW,mD,px1,pz1,houseGroup); addBox(wW,wD,px2,pz2,houseGroup,true);
+      addRoofY(hipGeo(mD,mW,wH,ridgeH(mD),ov),px1,pz1,houseGroup); addRoofY(hipGeo(wD,wW,wH,ridgeH(wD),ov),px2,pz2,houseGroup);
       addGutters(mW,mD,px1,pz1,houseGroup);
     }
-
-    // Chimney — sits on the ridge (now at Z=0, offset in X)
-    var rH_main = ridgeH(mD);
-    var cm=new THREE.Mesh(
-      new THREE.BoxGeometry(0.45, rH_main*0.5+0.6, 0.45),
-      new THREE.MeshStandardMaterial({color:0xbcaa8a,roughness:0.8,metalness:0})
-    );
-    cm.position.set(mW*0.22, wH + rH_main*0.1, 0);
-    cm.castShadow=true; houseGroup.add(cm);
-
-    var box=new THREE.Box3().setFromObject(houseGroup);
-    var ctr=box.getCenter(new THREE.Vector3());
-    houseGroup.position.x -= ctr.x; houseGroup.position.z -= ctr.z;
-
-    // Foundation — one slab per body section, matches each shape's footprint
-    var platH = 0.45;
-    var pMat = new THREE.MeshStandardMaterial({ color:0xc8c0b4, roughness:0.88, metalness:0 });
-    platFootprints.forEach(function(fp) {
-      var slab = new THREE.Mesh(new THREE.BoxGeometry(fp.w+0.9, platH, fp.d+0.7), pMat);
-      slab.position.set(fp.px, -platH/2, fp.pz);
-      slab.castShadow = true; slab.receiveShadow = true;
-      houseGroup.add(slab);
-    });
-
-    // Raise entire group so house walls sit on top of the platform
-    houseGroup.position.y = platH;
+    var rH_main=ridgeH(mD);
+    var cm=new THREE.Mesh(new THREE.BoxGeometry(0.45,rH_main*0.5+0.6,0.45),new THREE.MeshStandardMaterial({color:0xbcaa8a,roughness:0.8,metalness:0}));
+    cm.position.set(mW*0.22,wH+rH_main*0.1,0); cm.castShadow=true; houseGroup.add(cm);
+    var box=new THREE.Box3().setFromObject(houseGroup), ctr=box.getCenter(new THREE.Vector3());
+    houseGroup.position.x-=ctr.x; houseGroup.position.z-=ctr.z;
+    var platH=0.45, pMat=new THREE.MeshStandardMaterial({color:0xc8c0b4,roughness:0.88,metalness:0});
+    platFP.forEach(function(fp){ var slab=new THREE.Mesh(new THREE.BoxGeometry(fp.w+0.9,platH,fp.d+0.7),pMat); slab.position.set(fp.px,-platH/2,fp.pz); slab.castShadow=slab.receiveShadow=true; houseGroup.add(slab); });
+    houseGroup.position.y=platH;
     scene.add(houseGroup);
-
-    orb.ty = platH + wH/2 + ridgeH(mD)/3;
-    orbCam();
+    orb.ty=platH+wH/2+ridgeH(mD)/3; orbCam();
     updateEstimate();
   }
 
   function updateEstimate() {
-    var mW=S.mainW, mD=S.mainD, rH=ridgeH(mD);
+    var mW=S.mainW,mD=S.mainD,rH=ridgeH(mD);
     var sL=Math.sqrt((mD/2)*(mD/2)+rH*rH);
-    var area = S.shape==='2pante' ? 2*sL*mW
-             : S.shape==='4pante' ? 2*sL*mW*0.88+2*(mD/2)*mW*0.28
-             : 2*sL*mW*1.35;
-    var ppm = S.matType==='tigla' ? 110 : 95;
-    var lo=Math.round(area*ppm/100)*100;
-    var hi=Math.round(lo*1.45/100)*100;
-    document.getElementById('estimatePrice').textContent =
-      lo.toLocaleString('ro-RO')+' – '+hi.toLocaleString('ro-RO')+' lei';
+    var area=S.shape==='2pante'?2*sL*mW:S.shape==='4pante'?2*sL*mW*0.88+2*(mD/2)*mW*0.28:2*sL*mW*1.35;
+    var ppm=S.matType==='tigla'?110:95;
+    var lo=Math.round(area*ppm/100)*100, hi=Math.round(lo*1.45/100)*100;
+    var priceStr=lo.toLocaleString('ro-RO')+' – '+hi.toLocaleString('ro-RO')+' lei';
+    document.getElementById('estimatePrice').textContent=priceStr;
+    var areaRound=Math.round(area);
+    document.getElementById('estimateArea').textContent=areaRound+' m²';
+    var big=document.getElementById('estimatePriceBig'); if(big) big.textContent=priceStr;
+    var ab=document.getElementById('estimateAreaBig'); if(ab) ab.textContent=areaRound+' m²';
+    var euroEl=document.getElementById('estimateEuro'); if(euroEl) euroEl.textContent='~'+Math.round(area*59).toLocaleString('ro-RO')+' €';
+    var matEl=document.getElementById('est-mat'); if(matEl){ var cat=MAT_CATALOG[S.matType],col=findColor(S.matType,S.matColor); matEl.textContent=cat.label+(col?' · '+col.name:''); }
   }
 
   (function animate(){ requestAnimationFrame(animate); renderer.render(scene,camera); })();
 
-  // Load initial texture, then build
   TL.load('tex/trudefinition-duration-designer-black-sable.jpg',
-    function(tex) { tex.wrapS = tex.wrapT = THREE.RepeatWrapping; TEXS['black-sable'] = tex; buildHouse(); },
-    undefined,
-    function()    { buildHouse(); }
+    function(tex){ tex.wrapS=tex.wrapT=THREE.RepeatWrapping; TEXS['black-sable']=tex; buildHouse(); },
+    undefined, function(){ buildHouse(); }
   );
 
-  window._rebuild = buildHouse;
-  window._scene   = scene;
+  window._rebuild=buildHouse; window._scene=scene;
 
 }); // end load
 
 // ═══════════════════════════════════════════
-//  UI
+//  STEP WIZARD
 // ═══════════════════════════════════════════
-function toggleStep(n) {
-  var el=document.getElementById('step'+n);
-  var wasOpen=el.classList.contains('open');
-  document.querySelectorAll('.step').forEach(function(s){
-    s.classList.remove('open');
-    var t=s.querySelector('.step-toggle'); if(t) t.textContent='›';
-  });
-  if (!wasOpen) {
-    el.classList.add('open');
-    var t=el.querySelector('.step-toggle'); if(t) t.textContent='▾';
+var _curStep = 1;
+
+function goStep(n) {
+  if (n < 1 || n > 5) return;
+  var old = document.getElementById('sp-'+_curStep);
+  var next = document.getElementById('sp-'+n);
+  if (!next) return;
+  old.classList.remove('active');
+  next.classList.add('active', 'slide-in');
+  setTimeout(function(){ next.classList.remove('slide-in'); }, 350);
+  _curStep = n;
+  // Update progress dots
+  for (var i=1; i<=5; i++) {
+    var dot = document.getElementById('pd-'+i);
+    var line = document.getElementById('pl-'+i);
+    if (!dot) continue;
+    dot.classList.remove('current','done');
+    if (i < n) dot.classList.add('done');
+    else if (i === n) dot.classList.add('current');
+    if (line) line.classList.toggle('done', i < n);
   }
+  // Scroll panel to top
+  var body = next.querySelector('.sp-body');
+  if (body) body.scrollTop = 0;
+  window.scrollTo(0,0);
 }
 
+// ═══════════════════════════════════════════
+//  SHAPE
+// ═══════════════════════════════════════════
 function selectShape(shape, el) {
-  document.querySelectorAll('.shape-opt').forEach(function(e){e.classList.remove('active');});
+  document.querySelectorAll('.shape-card').forEach(function(e){e.classList.remove('active');});
   el.classList.add('active');
   S.shape = shape;
-  var L={'2pante':'Casă simplă - 2 pante','4pante':'Casă simplă - 4 pante','L':'Casă în L','T':'Casă în T'};
+  var L={'2pante':'Casă simplă — 2 pante','4pante':'Casă simplă — 4 pante','L':'Casă în L','T':'Casă în T'};
   document.getElementById('sub1').textContent = L[shape]||shape;
-  var hasWing = (shape==='L' || shape==='T');
-  document.getElementById('wingWCard').style.display = hasWing ? '' : 'none';
-  document.getElementById('wingDCard').style.display = hasWing ? '' : 'none';
-  document.getElementById('shapeNote').style.display = hasWing ? '' : 'none';
-  if (hasWing) document.getElementById('shapeNote').textContent =
-    shape==='L'
-    ? 'Forma în L unește corpul principal cu o aripă laterală. Aici apare o dolie și o intersecție de acoperiș care trebuie urmărită atent la montaj.'
-    : 'Forma în T unește corpul principal cu o aripă centrală. Doliile și intersecțiile de pe ambele laturi trebuie calculate cu atenție.';
-  updateSub2();
-  if (window._rebuild) window._rebuild();
+  var hasWing = (shape==='L'||shape==='T');
+  document.getElementById('wingWCard').style.display = hasWing?'':'none';
+  document.getElementById('wingDCard').style.display = hasWing?'':'none';
+  document.getElementById('shapeNote').style.display = hasWing?'':'none';
+  if (hasWing) document.getElementById('shapeNote').textContent = shape==='L'
+    ? 'Forma în L unește corpul principal cu o aripă laterală. Atenție la dolie și intersecție.'
+    : 'Forma în T unește corpul principal cu o aripă centrală. Doliile pe ambele laturi.';
+  // Shape label on viewer
+  var sl=document.getElementById('v-shape-label');
+  sl.textContent=L[shape]; sl.style.display='';
+  setTimeout(function(){sl.style.display='none';},2500);
+  updateSub2(); if(window._rebuild) window._rebuild();
 }
 
+// ═══════════════════════════════════════════
+//  VOLUMETRIE
+// ═══════════════════════════════════════════
 function updateSub2() {
-  var hasWing = (S.shape==='L'||S.shape==='T');
-  var t = S.mainW.toFixed(1)+' × '+S.mainD.toFixed(1)+' m';
-  if (hasWing) t += ' + aripa '+S.wingW.toFixed(1)+' × '+S.wingD.toFixed(1)+' m';
-  else t += ' · streașină '+S.overhang.toFixed(2)+' m';
-  document.getElementById('sub2').textContent = t;
+  var hasWing=(S.shape==='L'||S.shape==='T');
+  var t=S.mainW.toFixed(1)+' × '+S.mainD.toFixed(1)+' m';
+  if (hasWing) t+=' + aripă '+S.wingW.toFixed(1)+' × '+S.wingD.toFixed(1)+' m';
+  else t+=' · streașină '+S.overhang.toFixed(2)+' m';
+  document.getElementById('sub2').textContent=t;
 }
-
 function onVol() {
-  S.mainW    = parseFloat(document.getElementById('slMainW').value);
-  S.mainD    = parseFloat(document.getElementById('slMainD').value);
-  S.wingW    = parseFloat(document.getElementById('slWingW').value);
-  S.wingD    = parseFloat(document.getElementById('slWingD').value);
-  S.overhang = parseFloat(document.getElementById('slOverhang').value);
-  document.getElementById('vMainW').innerHTML    = S.mainW.toFixed(1)+' <em>m</em>';
-  document.getElementById('vMainD').innerHTML    = S.mainD.toFixed(1)+' <em>m</em>';
-  document.getElementById('vWingW').innerHTML    = S.wingW.toFixed(1)+' <em>m</em>';
-  document.getElementById('vWingD').innerHTML    = S.wingD.toFixed(1)+' <em>m</em>';
-  document.getElementById('vOverhang').innerHTML = S.overhang.toFixed(2)+' <em>m</em>';
-  updateSub2();
-  if (window._rebuild) window._rebuild();
+  S.mainW=parseFloat(document.getElementById('slMainW').value);
+  S.mainD=parseFloat(document.getElementById('slMainD').value);
+  S.wingW=parseFloat(document.getElementById('slWingW').value);
+  S.wingD=parseFloat(document.getElementById('slWingD').value);
+  S.overhang=parseFloat(document.getElementById('slOverhang').value);
+  document.getElementById('vMainW').innerHTML=S.mainW.toFixed(1)+' <em>m</em>';
+  document.getElementById('vMainD').innerHTML=S.mainD.toFixed(1)+' <em>m</em>';
+  document.getElementById('vWingW').innerHTML=S.wingW.toFixed(1)+' <em>m</em>';
+  document.getElementById('vWingD').innerHTML=S.wingD.toFixed(1)+' <em>m</em>';
+  document.getElementById('vOverhang').innerHTML=S.overhang.toFixed(2)+' <em>m</em>';
+  updateSub2(); if(window._rebuild) window._rebuild();
 }
-
 function resetPreset() {
   S.mainW=PRESET.mainW; S.mainD=PRESET.mainD; S.wingW=PRESET.wingW; S.wingD=PRESET.wingD; S.overhang=PRESET.overhang;
-  document.getElementById('slMainW').value=S.mainW;
-  document.getElementById('slMainD').value=S.mainD;
-  document.getElementById('slWingW').value=S.wingW;
-  document.getElementById('slWingD').value=S.wingD;
-  document.getElementById('slOverhang').value=S.overhang;
-  onVol();
+  document.getElementById('slMainW').value=S.mainW; document.getElementById('slMainD').value=S.mainD;
+  document.getElementById('slWingW').value=S.wingW; document.getElementById('slWingD').value=S.wingD;
+  document.getElementById('slOverhang').value=S.overhang; onVol();
 }
 
-// ── Material selector ─────────────────────────────────
+// ═══════════════════════════════════════════
+//  MATERIAL
+// ═══════════════════════════════════════════
 function renderMatTypeTabs() {
-  var el = document.getElementById('matTypeTabs');
-  if (!el) return;
-  el.innerHTML = Object.keys(MAT_CATALOG).map(function(key) {
-    return '<button class="mat-type-tab'+(key===S.matType?' active':'')+'" onclick="selectMatType(\''+key+'\',this)">'
-      + MAT_CATALOG[key].label + '</button>';
+  var el=document.getElementById('matTypeTabs'); if(!el) return;
+  el.innerHTML=Object.keys(MAT_CATALOG).map(function(key){
+    return '<button class="mat-tab'+(key===S.matType?' active':'')+'" onclick="selectMatType(\''+key+'\',this)">'+MAT_CATALOG[key].label+'</button>';
   }).join('');
 }
-
 function renderColorGrid() {
-  var el = document.getElementById('matColorGrid');
-  if (!el) return;
-  var cat = MAT_CATALOG[S.matType];
-  if (S.matType === 'tigla') {
-    el.innerHTML = '<div class="tigla-grid">'
-      + cat.colors.map(function(c) {
-          return '<div class="tigla-item'+(c.id===S.matColor?' active':'')+'" onclick="selectColor(\''+c.id+'\',this)">'
-            +'<div class="tigla-swatch" style="background:'+tiglaSwatchCSS(c)+'"></div>'
-            +'<div class="tigla-name">'+c.name+'</div></div>';
-        }).join('')
-      + '</div>';
-  } else {
-    el.innerHTML = '<div class="shingle-grid">'
-      + cat.colors.map(function(c) {
-          return '<div class="shingle-item'+(c.id===S.matColor?' active':'')+'" onclick="selectColor(\''+c.id+'\',this)">'
-            +'<img class="shingle-thumb" src="tex/'+c.file+'" loading="lazy" alt="'+c.name+'">'
-            +'<div class="shingle-name">'+c.name+'</div></div>';
-        }).join('')
-      + '</div>';
-  }
+  var el=document.getElementById('matColorGrid'); if(!el) return;
+  var cat=MAT_CATALOG[S.matType];
+  el.innerHTML=cat.colors.map(function(c){
+    var swatchHTML = S.matType==='tigla'
+      ? '<div class="col-swatch" style="background:'+tiglaSwatchCSS(c)+';aspect-ratio:3/2"></div>'
+      : '<div class="col-swatch"><img src="tex/'+c.file+'" loading="lazy" alt="'+c.name+'"></div>';
+    return '<div class="col-item'+(c.id===S.matColor?' active':'')+'" onclick="selectColor(\''+c.id+'\',this)">'
+      +swatchHTML+'<div class="col-name">'+c.name+'</div></div>';
+  }).join('');
 }
-
 function selectMatType(key, btn) {
-  S.matType  = key;
-  S.matColor = MAT_CATALOG[key].colors[0].id;
-  document.querySelectorAll('.mat-type-tab').forEach(function(b){b.classList.remove('active');});
-  btn.classList.add('active');
-  renderColorGrid();
-  updateSub3();
-  loadAndRebuild();
+  S.matType=key; S.matColor=MAT_CATALOG[key].colors[0].id;
+  document.querySelectorAll('.mat-tab').forEach(function(b){b.classList.remove('active');}); btn.classList.add('active');
+  renderColorGrid(); updateSub3(); loadAndRebuild();
 }
-
 function selectColor(id, el) {
-  document.querySelectorAll('.tigla-item,.shingle-item').forEach(function(e){e.classList.remove('active');});
-  el.classList.add('active');
-  S.matColor = id;
-  updateSub3();
-  loadAndRebuild();
+  document.querySelectorAll('.col-item').forEach(function(e){e.classList.remove('active');}); el.classList.add('active');
+  S.matColor=id; updateSub3(); loadAndRebuild();
 }
-
 function updateSub3() {
-  var cat = MAT_CATALOG[S.matType];
-  var col = findColor(S.matType, S.matColor);
-  document.getElementById('sub3').textContent = cat.label + (col ? ' · '+col.name : '');
+  var cat=MAT_CATALOG[S.matType], col=findColor(S.matType,S.matColor);
+  var el=document.getElementById('sub3'); if(el) el.textContent=cat.label+(col?' · '+col.name:'');
 }
-
 function loadAndRebuild() {
-  if (S.matType === 'tigla') {
-    if (window._rebuild) window._rebuild();
-  } else {
-    var col = findColor('sindrila', S.matColor);
-    if (!col) return;
-    if (window._TEXS && window._TEXS[S.matColor]) {
-      if (window._rebuild) window._rebuild();
-    } else if (window._TL) {
-      window._TL.load('tex/'+col.file, function(tex) {
-        tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
-        if (window._TEXS) window._TEXS[S.matColor] = tex;
-        if (window._rebuild) window._rebuild();
-      });
-    }
+  if (S.matType==='tigla') { if(window._rebuild) window._rebuild(); return; }
+  var col=findColor('sindrila',S.matColor); if(!col) return;
+  if (window._TEXS&&window._TEXS[S.matColor]) { if(window._rebuild) window._rebuild(); }
+  else if (window._TL) {
+    window._TL.load('tex/'+col.file, function(tex){ tex.wrapS=tex.wrapT=THREE.RepeatWrapping; if(window._TEXS) window._TEXS[S.matColor]=tex; if(window._rebuild) window._rebuild(); });
   }
 }
 
+// ═══════════════════════════════════════════
+//  DRAINAGE
+// ═══════════════════════════════════════════
 function toggleDrain() {
   S.drainage=!S.drainage;
   document.getElementById('drainToggle').classList.toggle('on',S.drainage);
   document.getElementById('drainColors').style.display=S.drainage?'block':'none';
   document.getElementById('sub4').textContent=S.drainage?'Activ':'Dezactivat';
-  if (window._rebuild) window._rebuild();
+  if(window._rebuild) window._rebuild();
 }
-
 function selectDrainColor(hex, el) {
-  document.querySelectorAll('.cswatch').forEach(function(e){e.classList.remove('active');});
-  el.classList.add('active');
-  S.drainColor=hex;
-  if (window._rebuild) window._rebuild();
+  document.querySelectorAll('.cswatch').forEach(function(e){e.classList.remove('active');}); el.classList.add('active');
+  S.drainColor=hex; if(window._rebuild) window._rebuild();
 }
 
+// ═══════════════════════════════════════════
+//  SEND
+// ═══════════════════════════════════════════
 function sendConfig() {
-  var cat = MAT_CATALOG[S.matType];
-  var col = findColor(S.matType, S.matColor);
-  alert('Bună ziua!\nDoresc o ofertă pentru:\n• Formă: '+S.shape
-    +'\n• Corp: '+S.mainW+'×'+S.mainD+' m'
-    +(S.shape==='L'||S.shape==='T'?'\n• Aripă: '+S.wingW+'×'+S.wingD+' m':'')
-    +'\n• Material: '+cat.label+(col?' — '+col.name:'')
-    +'\n• Scurgere: '+(S.drainage?'da':'nu'));
+  var cat=MAT_CATALOG[S.matType], col=findColor(S.matType,S.matColor);
+  var name=document.getElementById('cf-name').value||'–';
+  var tel=document.getElementById('cf-tel').value||'–';
+  var loc=document.getElementById('cf-loc').value||'–';
+  alert('✓ Configurație trimisă!\n\nClient: '+name+' · '+tel+'\nLocalizare: '+loc+'\n\nFormă: '+S.shape+'\nDimensiuni: '+S.mainW+'×'+S.mainD+' m'+(S.shape==='L'||S.shape==='T'?' + aripă '+S.wingW+'×'+S.wingD+' m':'')+'\nMaterial: '+cat.label+(col?' — '+col.name:'')+'\nScurgere: '+(S.drainage?'da':'nu')+'\n\nEchipa Acoperișuri Dikons te va contacta în max 2 ore!');
 }
 
-// Init UI
+// Init
 renderMatTypeTabs();
 renderColorGrid();
+
+// Fade out hint after 3s
+setTimeout(function(){ var h=document.getElementById('v-hint'); if(h) h.style.opacity='0'; }, 3000);
 </script>
 </body>
 </html>
