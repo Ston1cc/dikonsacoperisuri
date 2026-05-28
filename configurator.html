@@ -9,7 +9,29 @@
   <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
   <style>
 /* ═══ VARIABLES ════════════════════════════════ */
+/* ── Light mode (default) ───────────────────── */
 :root {
+  --bg:      #F5F1EC;
+  --panel:   #FFFFFF;
+  --panel2:  #F0EBE4;
+  --border:  rgba(26,23,20,.09);
+  --border2: rgba(26,23,20,.15);
+  --text:    #1A1714;
+  --mid:     #7A6F65;
+  --dim:     #B0A89F;
+  --orange:  #E8621A;
+  --orange2: rgba(232,98,26,.12);
+  --orange3: rgba(232,98,26,.06);
+  --disp:    'Syne', sans-serif;
+  --body:    'Outfit', sans-serif;
+  --nav-h:   52px;
+  --scene-bg:  #EDE6DA;
+  --scene-fog: #EDE6DA;
+  --scene-gnd: #BAD49A;
+}
+
+/* ── Dark mode ──────────────────────────────── */
+:root.dark {
   --bg:      #0E0C0A;
   --panel:   #171310;
   --panel2:  #201C18;
@@ -18,12 +40,9 @@
   --text:    #F0EAE2;
   --mid:     #8A7F74;
   --dim:     #4A433D;
-  --orange:  #E8621A;
-  --orange2: rgba(232,98,26,.15);
-  --orange3: rgba(232,98,26,.08);
-  --disp:    'Syne', sans-serif;
-  --body:    'Outfit', sans-serif;
-  --nav-h:   52px;
+  --scene-bg:  #1A1714;
+  --scene-fog: #1A1714;
+  --scene-gnd: #2A2420;
 }
 
 /* ═══ RESET ════════════════════════════════════ */
@@ -78,6 +97,7 @@ button { font-family: var(--body); cursor: pointer; border: none; }
 }
 @media (min-width: 700px) { .prog-label { display: block; } }
 
+.tb-close { display: flex; align-items: center; gap: 8px; }
 .tb-close a {
   display: flex; align-items: center; gap: 6px;
   font-size: 12px; font-weight: 500; color: var(--mid);
@@ -85,6 +105,24 @@ button { font-family: var(--body); cursor: pointer; border: none; }
   transition: all .2s;
 }
 .tb-close a:hover { color: var(--text); border-color: var(--border2); background: var(--panel2); }
+
+/* Dark/light toggle */
+#theme-toggle {
+  width: 36px; height: 20px; border-radius: 10px;
+  background: var(--panel2); border: 1.5px solid var(--border2);
+  position: relative; cursor: pointer; transition: background .25s, border-color .25s;
+  flex-shrink: 0;
+}
+#theme-toggle::after {
+  content: ''; position: absolute; top: 2px; left: 2px;
+  width: 14px; height: 14px; border-radius: 50%;
+  background: var(--mid); transition: transform .25s, background .25s;
+}
+:root.dark #theme-toggle { background: var(--orange2); border-color: var(--orange); }
+:root.dark #theme-toggle::after { transform: translateX(16px); background: var(--orange); }
+.theme-icon { font-size: 13px; line-height: 1; user-select: none; }
+:root.dark .icon-sun { display: none; }
+:root:not(.dark) .icon-moon { display: none; }
 
 /* ═══ MAIN LAYOUT ══════════════════════════════ */
 #layout {
@@ -588,6 +626,9 @@ input[type=range]::-moz-range-thumb {
   </nav>
 
   <div class="tb-close">
+    <span class="theme-icon icon-sun" title="Activează dark mode">☀️</span>
+    <button id="theme-toggle" onclick="toggleTheme()" aria-label="Schimbă tema"></button>
+    <span class="theme-icon icon-moon" title="Activează light mode">🌙</span>
     <a href="index.html">
       <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
       Închide
@@ -929,8 +970,15 @@ window.addEventListener('load', function () {
   renderer.setSize(s0.w, s0.h);
 
   var scene = new THREE.Scene();
-  scene.background = new THREE.Color(0x1a1714);
-  scene.fog = new THREE.Fog(0x1a1714, 45, 95);
+  var SCENE_LIGHT = 0xEDE6DA, SCENE_DARK = 0x1A1714;
+  function applySceneTheme() {
+    var isDark = document.documentElement.classList.contains('dark');
+    var col = isDark ? SCENE_DARK : SCENE_LIGHT;
+    scene.background = new THREE.Color(col);
+    scene.fog = new THREE.Fog(col, 45, 95);
+  }
+  applySceneTheme();
+  window._applySceneTheme = applySceneTheme;
 
   var camera = new THREE.PerspectiveCamera(40, s0.w / s0.h, 0.1, 200);
 
@@ -947,7 +995,7 @@ window.addEventListener('load', function () {
 
   var ground = new THREE.Mesh(
     new THREE.PlaneGeometry(80, 80),
-    new THREE.MeshLambertMaterial({ color: 0x2a2420 })
+    new THREE.MeshLambertMaterial({ color: 0xBAD49A })
   );
   ground.rotation.x = -Math.PI / 2;
   ground.receiveShadow = true;
@@ -1373,6 +1421,18 @@ function sendConfig() {
   var tel=document.getElementById('cf-tel').value||'–';
   var loc=document.getElementById('cf-loc').value||'–';
   alert('✓ Configurație trimisă!\n\nClient: '+name+' · '+tel+'\nLocalizare: '+loc+'\n\nFormă: '+S.shape+'\nDimensiuni: '+S.mainW+'×'+S.mainD+' m'+(S.shape==='L'||S.shape==='T'?' + aripă '+S.wingW+'×'+S.wingD+' m':'')+'\nMaterial: '+cat.label+(col?' — '+col.name:'')+'\nScurgere: '+(S.drainage?'da':'nu')+'\n\nEchipa Acoperișuri Dikons te va contacta în max 2 ore!');
+}
+
+// ── Theme toggle ──────────────────────────────
+// Restore saved theme immediately (before Three.js init)
+if (localStorage.getItem('cfg-theme') === 'dark') {
+  document.documentElement.classList.add('dark');
+}
+
+function toggleTheme() {
+  var isDark = document.documentElement.classList.toggle('dark');
+  localStorage.setItem('cfg-theme', isDark ? 'dark' : 'light');
+  if (window._applySceneTheme) window._applySceneTheme();
 }
 
 // Init
