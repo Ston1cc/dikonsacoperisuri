@@ -395,33 +395,161 @@ input[type=range]::-moz-range-thumb {
 .pb-price { font-family: var(--disp); font-size: 22px; font-weight: 800; color: #fff; }
 
 /* ═══ MOBILE ════════════════════════════════════ */
-@media (max-width: 720px) {
-  html, body { overflow: auto; height: auto; }
+/* ── Mobile progress bar (below top bar) ─────── */
+#mob-bar {
+  display: none; position: fixed;
+  top: var(--nav-h); left: 0; right: 0; z-index: 98;
+  height: 2px; background: var(--border);
+}
+#mob-fill {
+  height: 100%; width: 20%; background: var(--orange);
+  transition: width .4s cubic-bezier(.4,0,.2,1);
+}
+.tb-mob-step {
+  display: none; font-family: var(--disp); font-size: 13px; font-weight: 800;
+  color: var(--orange); white-space: nowrap;
+}
+
+/* ── Main mobile breakpoint ─────────────────── */
+@media (max-width: 768px) {
+  /* Page scroll */
+  html, body { overflow-y: auto; height: auto; overscroll-behavior-y: contain; }
+
+  /* Top bar: hide dot progress, show text counter */
+  .progress-track { display: none; }
+  .tb-mob-step { display: block; }
+  #mob-bar { display: block; }
+
+  /* Compact top bar */
+  #top-bar { padding: 0 14px; gap: 10px; }
+  .tb-logo img { height: 26px; }
+  .tb-close a { font-size: 0; padding: 8px; border-radius: 50%; width: 32px; height: 32px; justify-content: center; }
+  .tb-close a svg { width: 14px; height: 14px; display: block; }
+
+  /* Layout: vertical stack */
   #layout {
-    position: static;
-    grid-template-columns: 1fr;
-    grid-template-rows: 54vw auto;
+    position: relative;
+    display: flex; flex-direction: column;
+    grid-template-columns: unset; grid-template-rows: unset;
     min-height: calc(100vh - var(--nav-h));
+    padding-top: 2px; /* mob-bar height */
   }
-  #viewer-side { height: 54vw; min-height: 240px; }
-  #config-panel { height: auto; overflow: visible; }
-  .sp { height: auto; }
-  .sp-body { overflow-y: visible; }
-  #v-price { bottom: 10px; left: 10px; }
-  .vol-cards { grid-template-columns: 1fr; }
+
+  /* Viewer: ~44% viewport height */
+  #viewer-side {
+    flex-shrink: 0;
+    height: 44vh; min-height: 220px; max-height: 360px;
+  }
+
+  /* Price badge repositioned */
+  #v-price {
+    bottom: 10px; left: 10px;
+    padding: 10px 14px; min-width: 0;
+    border-radius: 10px;
+  }
+  .vp-price { font-size: 17px; }
+  .vp-area { font-size: 10px; }
+  #v-hint { display: none; }
+  #v-shape-label { top: 10px; right: 10px; font-size: 10px; padding: 4px 10px; }
+
+  /* Config panel */
+  #config-panel {
+    flex: 1; height: auto; overflow: visible;
+    border-left: none; border-top: 1px solid var(--border);
+  }
+
+  /* Step panels */
+  .sp { height: auto; min-height: 0; display: none; flex-direction: column; }
+  .sp.active { display: flex; }
+  .sp-head { padding: 18px 16px 14px; }
+  .sp-num { font-size: 10px; }
+  .sp-head h2 { font-size: 19px; letter-spacing: -.4px; }
+  .sp-head p { font-size: 12px; }
+
+  /* Scrollable body with bottom padding for fixed footer */
+  .sp-body { overflow-y: visible; padding: 14px 16px 96px; }
+
+  /* Fixed bottom nav per active step */
+  .sp.active .sp-foot {
+    position: fixed; bottom: 0; left: 0; right: 0; z-index: 200;
+    background: var(--panel);
+    border-top: 1px solid var(--border2);
+    padding: 12px 16px;
+    padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+    box-shadow: 0 -16px 40px rgba(0,0,0,.55);
+    gap: 10px;
+  }
+  .btn-next { padding: 16px; font-size: 15px; border-radius: 10px; min-height: 52px; }
+  .btn-back { padding: 16px 20px; font-size: 13px; border-radius: 10px; min-height: 52px; }
+
+  /* Shape cards: 2-col, bigger tap area */
+  .shape-cards { gap: 8px; }
+  .shape-card { padding: 18px 12px; gap: 12px; border-radius: 14px; }
+  .shape-card svg { width: 52px; height: 36px; }
+  .sc-name { font-size: 12px; }
+  .sc-desc { display: none; }
+
+  /* Sliders */
+  .vol-cards { grid-template-columns: 1fr; gap: 10px; }
+  .vol-card { padding: 16px; border-radius: 12px; }
+  .vc-val { font-size: 22px; }
+  input[type=range] { height: 4px; margin: 4px 0; }
+  input[type=range]::-webkit-slider-thumb { width: 24px; height: 24px; }
+  input[type=range]::-moz-range-thumb { width: 24px; height: 24px; border-radius: 50%; }
+
+  /* Material tabs */
+  .mat-tabs { margin-bottom: 12px; }
+  .mat-tab { padding: 11px 6px; font-size: 12px; border-radius: 8px; min-height: 44px; }
+
+  /* Color grid: 4-col for sindrila, 3-col for tigla */
+  .color-grid { grid-template-columns: repeat(4,1fr); gap: 6px; }
+  .col-name { font-size: 8.5px; padding: 3px 4px; }
+  .col-item { border-radius: 6px; }
+
+  /* Ref photos */
+  .ref-strip { grid-template-columns: repeat(3,1fr); gap: 5px; }
+  .ref-strip-label { margin-top: 16px; }
+
+  /* Drain */
+  .drain-toggle-row { padding: 18px 16px; border-radius: 12px; }
+  .drain-toggle-row label { font-size: 15px; }
+  .tog { width: 50px; height: 28px; border-radius: 14px; }
+  .tog-thumb { width: 22px; height: 22px; top: 3px; left: 3px; }
+  .tog.on .tog-thumb { left: 25px; }
+  .cswatch { width: 36px; height: 36px; }
+  .drain-swatches { gap: 10px; }
+
+  /* Estimate step */
+  .price-banner { padding: 18px; border-radius: 12px; }
+  .pb-price { font-size: 20px; }
+  .estimate-box { padding: 18px; gap: 14px; border-radius: 12px; }
+  .est-val { font-size: 18px; }
+  .cf-group input, .cf-group textarea, .cf-group select { font-size: 15px; padding: 14px 12px; min-height: 48px; border-radius: 10px; }
   .cf-row { grid-template-columns: 1fr; }
-  .progress-track { gap: 0; }
-  .prog-line { width: 14px; }
+  .contact-form { gap: 12px; }
+}
+
+/* ── Tiny phones ────────────────────────────── */
+@media (max-width: 380px) {
+  #viewer-side { height: 40vh; min-height: 200px; }
+  .color-grid { grid-template-columns: repeat(3,1fr); }
+  .shape-card { padding: 14px 8px; }
+  .shape-card svg { width: 44px; height: 30px; }
 }
   </style>
 </head>
 <body>
+
+<!-- Mobile progress bar -->
+<div id="mob-bar"><div id="mob-fill"></div></div>
 
 <!-- ═══ TOP BAR ══════════════════════════════════ -->
 <div id="top-bar">
   <div class="tb-logo">
     <a href="index.html"><img src="img/logo.jpg" alt="Acoperișuri Dikons"></a>
   </div>
+
+  <span class="tb-mob-step" id="tb-mob-step">1 / 5</span>
 
   <nav class="progress-track" id="prog-track">
     <div class="prog-step">
@@ -1086,10 +1214,15 @@ function goStep(n) {
     else if (i === n) dot.classList.add('current');
     if (line) line.classList.toggle('done', i < n);
   }
-  // Scroll panel to top
+  // Mobile progress bar + counter
+  var fill = document.getElementById('mob-fill');
+  if (fill) fill.style.width = (n * 20) + '%';
+  var mobLabel = document.getElementById('tb-mob-step');
+  if (mobLabel) mobLabel.textContent = n + ' / 5';
+  // Scroll to top
   var body = next.querySelector('.sp-body');
   if (body) body.scrollTop = 0;
-  window.scrollTo(0,0);
+  window.scrollTo({top: 0, behavior: 'smooth'});
 }
 
 // ═══════════════════════════════════════════
