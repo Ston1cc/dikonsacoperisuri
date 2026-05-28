@@ -613,6 +613,11 @@ window.addEventListener('load', function () {
     var m=new THREE.Mesh(geo, roofMat());
     m.position.set(px,0,pz); m.castShadow=m.receiveShadow=true; group.add(m);
   }
+  // addRoofY: same but rotated 90° around Y so ridge runs along X (slope faces front)
+  function addRoofY(geo,px,pz,group) {
+    var m=new THREE.Mesh(geo, roofMat());
+    m.position.set(px,0,pz); m.rotation.y=Math.PI/2; m.castShadow=m.receiveShadow=true; group.add(m);
+  }
 
   function addGutters(bw,bd,px,pz,group) {
     if (!S.drainage) return;
@@ -628,7 +633,7 @@ window.addEventListener('load', function () {
     });
   }
 
-  function ridgeH(W) { return W * 0.35; }  // ~35° pitch
+  function ridgeH(W) { return W * 0.28; }  // ~29° pitch
 
   function buildHouse() {
     if (houseGroup) { disposeGroup(houseGroup); scene.remove(houseGroup); }
@@ -637,12 +642,12 @@ window.addEventListener('load', function () {
 
     if (S.shape === '2pante') {
       addBox(mW,mD,0,0,houseGroup);
-      addRoof(gableGeo(mW,mD,wH,ridgeH(mW),ov),0,0,houseGroup);
+      addRoofY(gableGeo(mD,mW,wH,ridgeH(mD),ov),0,0,houseGroup);
       addGutters(mW,mD,0,0,houseGroup);
 
     } else if (S.shape === '4pante') {
       addBox(mW,mD,0,0,houseGroup);
-      addRoof(hipGeo(mW,mD,wH,ridgeH(mW),ov),0,0,houseGroup);
+      addRoofY(hipGeo(mD,mW,wH,ridgeH(mD),ov),0,0,houseGroup);
       addGutters(mW,mD,0,0,houseGroup);
 
     } else if (S.shape === 'L') {
@@ -650,8 +655,8 @@ window.addEventListener('load', function () {
       var px2=(mW+wW)/2-(wW/2), pz2=(mD-wD)/2;
       addBox(mW,mD,px1,pz1,houseGroup);
       addBox(wW,wD,px2,pz2,houseGroup,true);
-      addRoof(hipGeo(mW,mD,wH,ridgeH(mW),ov),px1,pz1,houseGroup);
-      addRoof(hipGeo(wW,wD,wH,ridgeH(wW),ov),px2,pz2,houseGroup);
+      addRoofY(hipGeo(mD,mW,wH,ridgeH(mD),ov),px1,pz1,houseGroup);
+      addRoofY(hipGeo(wD,wW,wH,ridgeH(wD),ov),px2,pz2,houseGroup);
       addGutters(mW,mD,px1,pz1,houseGroup);
 
     } else if (S.shape === 'T') {
@@ -659,17 +664,18 @@ window.addEventListener('load', function () {
       var px2=0, pz2=-(mD/2);
       addBox(mW,mD,px1,pz1,houseGroup);
       addBox(wW,wD,px2,pz2,houseGroup,true);
-      addRoof(hipGeo(mW,mD,wH,ridgeH(mW),ov),px1,pz1,houseGroup);
-      addRoof(hipGeo(wW,wD,wH,ridgeH(wW),ov),px2,pz2,houseGroup);
+      addRoofY(hipGeo(mD,mW,wH,ridgeH(mD),ov),px1,pz1,houseGroup);
+      addRoofY(hipGeo(wD,wW,wH,ridgeH(wD),ov),px2,pz2,houseGroup);
       addGutters(mW,mD,px1,pz1,houseGroup);
     }
 
-    // Chimney
+    // Chimney — sits on the ridge (now at Z=0, offset in X)
+    var rH_main = ridgeH(mD);
     var cm=new THREE.Mesh(
-      new THREE.BoxGeometry(0.45,ridgeH(mW)*0.5+0.6,0.45),
+      new THREE.BoxGeometry(0.45, rH_main*0.5+0.6, 0.45),
       new THREE.MeshStandardMaterial({color:0xbcaa8a,roughness:0.8,metalness:0})
     );
-    cm.position.set(mW*0.22-0.2, wH+ridgeH(mW)*0.2, -mD*0.18);
+    cm.position.set(mW*0.22, wH + rH_main*0.1, 0);
     cm.castShadow=true; houseGroup.add(cm);
 
     var box=new THREE.Box3().setFromObject(houseGroup);
@@ -677,17 +683,17 @@ window.addEventListener('load', function () {
     houseGroup.position.x -= ctr.x; houseGroup.position.z -= ctr.z;
     scene.add(houseGroup);
 
-    orb.ty = wH/2 + ridgeH(mW)/3;
+    orb.ty = wH/2 + ridgeH(mD)/3;
     orbCam();
     updateEstimate();
   }
 
   function updateEstimate() {
-    var mW=S.mainW, mD=S.mainD, rH=ridgeH(mW);
-    var sL=Math.sqrt((mW/2)*(mW/2)+rH*rH);
-    var area = S.shape==='2pante' ? 2*sL*mD
-             : S.shape==='4pante' ? 2*sL*mD*0.88+2*(mW/2)*mD*0.28
-             : 2*sL*mD*1.35;
+    var mW=S.mainW, mD=S.mainD, rH=ridgeH(mD);
+    var sL=Math.sqrt((mD/2)*(mD/2)+rH*rH);
+    var area = S.shape==='2pante' ? 2*sL*mW
+             : S.shape==='4pante' ? 2*sL*mW*0.88+2*(mD/2)*mW*0.28
+             : 2*sL*mW*1.35;
     var ppm = S.matType==='tigla' ? 110 : 95;
     var lo=Math.round(area*ppm/100)*100;
     var hi=Math.round(lo*1.45/100)*100;
