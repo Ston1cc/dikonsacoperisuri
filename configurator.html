@@ -469,8 +469,9 @@ input[type=range]::-moz-range-thumb {
 
 /* ── Main mobile breakpoint ─────────────────── */
 @media (max-width: 768px) {
-  /* Page scroll */
-  html, body { overflow-y: auto; height: auto; overscroll-behavior-y: contain; }
+  /* Unlock page scroll — override all desktop overflow/height locks */
+  html { height: auto !important; overflow: visible !important; }
+  body { height: auto !important; overflow-x: hidden !important; overflow-y: auto !important; }
 
   /* Top bar: hide dot progress, show text counter */
   .progress-track { display: none; }
@@ -503,22 +504,22 @@ input[type=range]::-moz-range-thumb {
   #v-hint { display: none; }
   #v-shape-label { top: 10px; right: 10px; font-size: 10px; padding: 4px 10px; }
 
-  /* Config panel */
+  /* Config panel — no overflow clipping */
   #config-panel {
-    flex: 1; height: auto; overflow: visible;
+    flex: 1; height: auto !important; overflow: visible !important;
     border-left: none; border-top: 1px solid var(--border);
   }
 
   /* Step panels */
-  .sp { height: auto; min-height: 0; display: none; flex-direction: column; }
+  .sp { height: auto !important; min-height: 0; display: none; flex-direction: column; overflow: visible !important; }
   .sp.active { display: flex; }
   .sp-head { padding: 18px 16px 14px; }
   .sp-num { font-size: 10px; }
   .sp-head h2 { font-size: 19px; letter-spacing: -.4px; }
   .sp-head p { font-size: 12px; }
 
-  /* Body scrolls naturally with the page — no fixed footer needed */
-  .sp-body { overflow-y: visible; padding: 14px 16px 20px; }
+  /* Body — visible overflow so page can scroll */
+  .sp-body { overflow: visible !important; height: auto !important; padding: 14px 16px 20px; }
 
   /* Nav buttons: static, scroll with content (no overlap with cards) */
   .sp.active .sp-foot {
