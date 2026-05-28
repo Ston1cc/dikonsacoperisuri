@@ -640,18 +640,8 @@ window.addEventListener('load', function () {
     var df = new THREE.Mesh(new THREE.BoxGeometry(1.04, 2.2, 0.13), wMat);
     df.position.set(px, 1.1, fZ); df.castShadow=true; group.add(df);
     var dp = new THREE.Mesh(new THREE.BoxGeometry(0.9, 2.1, 0.1), dMat);
-    dp.position.set(px, 1.05, fZ); group.add(dp);
+    dp.position.set(px, 1.05, fZ - 0.04); group.add(dp); // 4cm in front of frame → visible
 
-    // Entrance platform (concrete landing step)
-    var sMat = new THREE.MeshStandardMaterial({ color:0xc8bfb0, roughness:0.92, metalness:0 });
-    var platform = new THREE.Mesh(new THREE.BoxGeometry(1.6, 0.12, 0.55), sMat);
-    platform.position.set(px, 0.06, fZ - 0.22);
-    platform.castShadow = true; platform.receiveShadow = true;
-    group.add(platform);
-    // Thin front edge detail
-    var edge = new THREE.Mesh(new THREE.BoxGeometry(1.6, 0.04, 0.04), sMat);
-    edge.position.set(px, 0.12, fZ - 0.47);
-    group.add(edge);
 
     // Front windows (if wide enough)
     if (bw > 3.5) {
@@ -751,9 +741,20 @@ window.addEventListener('load', function () {
     var box=new THREE.Box3().setFromObject(houseGroup);
     var ctr=box.getCenter(new THREE.Vector3());
     houseGroup.position.x -= ctr.x; houseGroup.position.z -= ctr.z;
+
+    // Foundation platform — sits under the whole house, slightly wider on all sides
+    var platH = 0.45;
+    var pMat = new THREE.MeshStandardMaterial({ color:0xc8c0b4, roughness:0.88, metalness:0 });
+    var pMesh = new THREE.Mesh(new THREE.BoxGeometry(mW+1.0, platH, mD+0.8), pMat);
+    pMesh.position.set(0, -platH/2, 0);  // local Y=-platH/2 → world Y=platH/2 after raise
+    pMesh.castShadow = true; pMesh.receiveShadow = true;
+    houseGroup.add(pMesh);
+
+    // Raise entire group so house walls sit on top of the platform
+    houseGroup.position.y = platH;
     scene.add(houseGroup);
 
-    orb.ty = wH/2 + ridgeH(mD)/3;
+    orb.ty = platH + wH/2 + ridgeH(mD)/3;
     orbCam();
     updateEstimate();
   }
