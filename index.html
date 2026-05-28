@@ -587,6 +587,15 @@ footer { background: var(--dark); padding: clamp(40px,6vw,64px) 0 0; }
 @media (max-width: 900px) { .lacl-grid { grid-template-columns: 1fr 1fr; } }
 @media (max-width: 600px) { .lacl-grid { grid-template-columns: 1fr; } .price-badge { border-radius: 12px; } }
 
+/* Disable scroll animations on mobile — show all content immediately */
+@media (max-width: 768px) {
+  .reveal, .reveal-left, .reveal-right, .reveal-scale {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
+  }
+}
+
 /* ── Animations ───────────────────────────────── */
 @keyframes fadeUp {
   from { opacity: 0; transform: translateY(18px); }
