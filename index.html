@@ -146,11 +146,29 @@ img { display: block; max-width: 100%; }
 .btn-orange:hover { filter: brightness(1.1); transform: translateY(-2px); }
 
 /* Fade-in on scroll */
+/* ── Scroll reveal animations ─────────────────── */
 .reveal {
-  opacity: 0; transform: translateY(22px);
-  transition: opacity .65s ease, transform .65s ease;
+  opacity: 0; transform: translateY(28px);
+  transition: opacity .7s cubic-bezier(.22,1,.36,1), transform .7s cubic-bezier(.22,1,.36,1);
 }
 .reveal.visible { opacity: 1; transform: none; }
+
+/* Directional variants */
+.reveal-left  { opacity:0; transform:translateX(-32px); transition: opacity .7s cubic-bezier(.22,1,.36,1), transform .7s cubic-bezier(.22,1,.36,1); }
+.reveal-right { opacity:0; transform:translateX( 32px); transition: opacity .7s cubic-bezier(.22,1,.36,1), transform .7s cubic-bezier(.22,1,.36,1); }
+.reveal-left.visible, .reveal-right.visible { opacity:1; transform:none; }
+
+/* Scale-up for cards/images */
+.reveal-scale { opacity:0; transform:scale(.96) translateY(16px); transition: opacity .65s cubic-bezier(.22,1,.36,1), transform .65s cubic-bezier(.22,1,.36,1); }
+.reveal-scale.visible { opacity:1; transform:none; }
+
+/* Stagger delays for grid children */
+.stagger > *:nth-child(1) { transition-delay: .0s; }
+.stagger > *:nth-child(2) { transition-delay: .1s; }
+.stagger > *:nth-child(3) { transition-delay: .2s; }
+.stagger > *:nth-child(4) { transition-delay: .3s; }
+.stagger > *:nth-child(5) { transition-delay: .4s; }
+.stagger > *:nth-child(6) { transition-delay: .5s; }
 
 /* ── ACASĂ ────────────────────────────────────── */
 
@@ -159,15 +177,22 @@ img { display: block; max-width: 100%; }
   min-height: calc(100vh - 62px);
   display: grid; align-content: center;
   position: relative; overflow: hidden;
+  background: url('img/hero.jpg') center/cover no-repeat;
 }
-.hero .wrap { padding-top: clamp(48px,8vw,80px); padding-bottom: clamp(48px,8vw,80px); }
+/* Dark gradient overlay: readable left side, partial reveal of house on right */
+.hero::before {
+  content: ''; position: absolute; inset: 0; z-index: 0;
+  background: linear-gradient(
+    100deg,
+    rgba(10,8,6,.90) 0%,
+    rgba(10,8,6,.82) 45%,
+    rgba(10,8,6,.45) 75%,
+    rgba(10,8,6,.15) 100%
+  );
+}
+.hero .wrap { padding-top: clamp(48px,8vw,80px); padding-bottom: clamp(48px,8vw,80px); position: relative; z-index: 1; }
 
-.hero-blob {
-  position: absolute; right: -100px; top: 5%;
-  width: min(600px, 50vw); height: 80%;
-  background: radial-gradient(ellipse at 60% 40%, #FFDCC9 0%, rgba(232,98,26,.06) 60%, transparent 80%);
-  border-radius: 50%; z-index: 0; pointer-events: none;
-}
+.hero-blob { display: none; }
 
 .hero-eyebrow {
   font-size: 11.5px; font-weight: 600; text-transform: uppercase;
@@ -178,12 +203,12 @@ img { display: block; max-width: 100%; }
   font-family: var(--display); font-weight: 800;
   font-size: clamp(42px, 7.5vw, 98px);
   line-height: .98; letter-spacing: -3px;
-  max-width: 820px; margin-bottom: 26px;
+  max-width: 820px; margin-bottom: 26px; color: #fff;
   opacity: 0; animation: fadeUp .7s ease .25s both;
 }
 .hero h1 em { color: var(--orange); font-style: normal; }
 .hero-sub {
-  font-size: clamp(15px,1.8vw,17px); font-weight: 300; color: var(--mid);
+  font-size: clamp(15px,1.8vw,17px); font-weight: 300; color: rgba(255,255,255,.75);
   max-width: 440px; line-height: 1.75; margin-bottom: 38px;
   opacity: 0; animation: fadeUp .7s ease .4s both;
 }
@@ -191,6 +216,9 @@ img { display: block; max-width: 100%; }
   display: flex; gap: 12px; flex-wrap: wrap;
   opacity: 0; animation: fadeUp .7s ease .55s both;
 }
+/* Ghost button contrast on dark bg */
+.hero .btn-ghost { border-color: rgba(255,255,255,.3); color: #fff; }
+.hero .btn-ghost:hover { border-color: rgba(255,255,255,.8); }
 
 /* Stats ribbon */
 .stats-ribbon { background: var(--dark); }
@@ -648,7 +676,7 @@ footer { background: var(--dark); padding: clamp(40px,6vw,64px) 0 0; }
   </section>
 
   <div class="stats-ribbon">
-    <div class="stats-inner">
+    <div class="stats-inner stagger">
       <div class="stat reveal">
         <div class="stat-n">127<sup>+</sup></div>
         <div class="stat-l">Proiecte finalizate</div>
@@ -674,7 +702,7 @@ footer { background: var(--dark); padding: clamp(40px,6vw,64px) 0 0; }
         </div>
         <p style="font-size:15px;font-weight:300;color:var(--mid);line-height:1.75">La 59 €/m² nu ascundem nimic. Prețul include <strong>toate</strong> materialele, manopera completă, curățenia șantierului și documentele de garanție. Fără surprize pe parcurs.</p>
       </div>
-      <div class="lacl-grid reveal">
+      <div class="lacl-grid reveal stagger">
         <div class="lacl-item">
           <div class="lacl-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></div>
           <h4>Demontare acoperiș vechi</h4>
@@ -717,7 +745,7 @@ footer { background: var(--dark); padding: clamp(40px,6vw,64px) 0 0; }
   <section class="sec">
     <div class="wrap">
       <div class="label reveal">De ce Acoperișuri Dikons?</div>
-      <div class="why-grid reveal">
+      <div class="why-grid reveal stagger">
         <div class="why-card">
           <svg class="why-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
           <h3>Garanție extinsă</h3>
@@ -799,38 +827,38 @@ footer { background: var(--dark); padding: clamp(40px,6vw,64px) 0 0; }
 
   <section class="sec" style="padding-top:32px">
     <div class="wrap">
-      <div class="services-grid">
-        <div class="svc-card reveal">
+      <div class="services-grid stagger">
+        <div class="svc-card reveal-scale">
           <div class="svc-n">01</div>
           <h3>Montaj acoperiș nou</h3>
           <p>Construim acoperișuri de la zero — gableuri, hip-uri, forme în L și T. Folosim materiale certificate și structuri calculate static.</p>
           <span class="svc-tag">Nou</span>
         </div>
-        <div class="svc-card reveal">
+        <div class="svc-card reveal-scale">
           <div class="svc-n">02</div>
           <h3>Renovare și reparație</h3>
           <p>Diagnosticăm acoperișurile existente, înlocuim zonele deteriorate și asigurăm impermeabilizare completă fără demolări inutile.</p>
           <span class="svc-tag">Renovare</span>
         </div>
-        <div class="svc-card reveal">
+        <div class="svc-card reveal-scale">
           <div class="svc-n">03</div>
           <h3>Termoizolație</h3>
           <p>Soluții de izolație termică cu vată minerală sau polistiren extrudat, care reduc consumul energetic al casei cu până la 35%.</p>
           <span class="svc-tag">Eficiență</span>
         </div>
-        <div class="svc-card reveal">
+        <div class="svc-card reveal-scale">
           <div class="svc-n">04</div>
           <h3>Sisteme de scurgere</h3>
           <p>Montăm jgheaburi și burlane din aluminiu sau oțel vopsit, cu garanție anticoroziune. Calculăm debitele pentru orice suprafață.</p>
           <span class="svc-tag">Scurgere</span>
         </div>
-        <div class="svc-card reveal">
+        <div class="svc-card reveal-scale">
           <div class="svc-n">05</div>
           <h3>Consultanță tehnică</h3>
           <p>Venind pe șantier sau analizând planurile tale, oferim sfaturi tehnice oneste — fără costuri ascunse sau soluții supradimensionate.</p>
           <span class="svc-tag">Consultanță</span>
         </div>
-        <div class="svc-card reveal">
+        <div class="svc-card reveal-scale">
           <div class="svc-n">06</div>
           <h3>Garanție și service</h3>
           <p>Post-montaj, rămânem disponibili. Inspecții anuale gratuite, intervenții rapide la eventuale probleme, tot în baza contractului.</p>
@@ -903,7 +931,7 @@ footer { background: var(--dark); padding: clamp(40px,6vw,64px) 0 0; }
       <button class="filter-btn" onclick="filterPort('comercial', this)">Comercial</button>
     </div>
 
-    <div class="portfolio-grid" id="port-grid">
+    <div class="portfolio-grid stagger" id="port-grid">
       <!-- Cards generated by JS -->
     </div>
   </div>
@@ -925,7 +953,7 @@ footer { background: var(--dark); padding: clamp(40px,6vw,64px) 0 0; }
     <div class="wrap">
       <div class="label reveal">Cine suntem</div>
       <div class="about-duo">
-        <div class="about-img reveal">
+        <div class="about-img reveal-left">
           <div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;opacity:.25">
             <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
           </div>
@@ -934,7 +962,7 @@ footer { background: var(--dark); padding: clamp(40px,6vw,64px) 0 0; }
             <span>Fondată în Moldova</span>
           </div>
         </div>
-        <div class="about-content reveal">
+        <div class="about-content reveal-right">
           <div class="label">Povestea noastră</div>
           <h2>15 ani de<br>acoperișuri solide.</h2>
           <p>Acoperișuri Dikons a apărut dintr-o nevoie reală: oamenii aveau nevoie de un acoperiș complet, corect și fără surprize. Am creat conceptul <strong>„la cheie"</strong> — un singur preț transparent, care include tot: demontare, materiale europene, montaj și predare cu garanție.</p>
@@ -1105,7 +1133,7 @@ function renderPortfolio(filter) {
   var grid = document.getElementById('port-grid');
   var items = filter === 'toate' ? PROJECTS : PROJECTS.filter(function(p){ return p.type === filter; });
   grid.innerHTML = items.map(function(p) {
-    return '<div class="port-card reveal">'
+    return '<div class="port-card reveal-scale">'
       + '<div class="port-thumb"><div class="port-thumb-inner" style="background:'+p.color+'">'
       + '<span class="port-thumb-label">DikonSa</span></div></div>'
       + '<div class="port-info"><div class="port-type">'+typeLabel(p.type)+'</div>'
@@ -1160,16 +1188,24 @@ function toggleMenu() {
 
 /* ── Scroll reveal ───────────────────── */
 var io = new IntersectionObserver(function(entries){
-  entries.forEach(function(e){ if(e.isIntersecting) e.target.classList.add('visible'); });
-}, {threshold:.12});
+  entries.forEach(function(e){
+    if (e.isIntersecting) { e.target.classList.add('visible'); io.unobserve(e.target); }
+  });
+}, {threshold:.1, rootMargin:'0px 0px -40px 0px'});
 
 function observeAll() {
-  document.querySelectorAll('.reveal:not(.visible)').forEach(function(el){ io.observe(el); });
+  document.querySelectorAll('.reveal:not(.visible),.reveal-left:not(.visible),.reveal-right:not(.visible),.reveal-scale:not(.visible)')
+    .forEach(function(el){ io.observe(el); });
 }
 
-/* ── Nav scroll shadow ───────────────── */
+/* ── Hero parallax ───────────────────── */
+var heroEl = document.querySelector('.hero');
 window.addEventListener('scroll', function(){
   document.getElementById('nav').classList.toggle('scrolled', window.scrollY > 20);
+  if (heroEl) {
+    var y = window.scrollY * 0.35;
+    heroEl.style.backgroundPositionY = 'calc(50% + ' + y + 'px)';
+  }
 }, {passive:true});
 
 /* ── Contact form ────────────────────── */
