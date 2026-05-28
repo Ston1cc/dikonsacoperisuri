@@ -483,19 +483,18 @@ input[type=range]::-moz-range-thumb {
   .tb-close a { font-size: 0; padding: 8px; border-radius: 50%; width: 32px; height: 32px; justify-content: center; }
   .tb-close a svg { width: 14px; height: 14px; display: block; }
 
-  /* Layout: vertical stack */
+  /* Layout: vertical stack, starts below fixed nav */
   #layout {
     position: relative;
     display: flex; flex-direction: column;
     grid-template-columns: unset; grid-template-rows: unset;
-    min-height: calc(100vh - var(--nav-h));
-    padding-top: 2px; /* mob-bar height */
+    margin-top: calc(var(--nav-h) + 2px); /* below top-bar + mob-bar */
   }
 
-  /* Viewer: ~44% viewport height */
+  /* Viewer: ~42% viewport height */
   #viewer-side {
     flex-shrink: 0;
-    height: 44vh; min-height: 220px; max-height: 360px;
+    height: 42vh; min-height: 210px; max-height: 340px;
   }
 
   /* Hide floating badge, show dedicated strip below viewer instead */
@@ -518,17 +517,17 @@ input[type=range]::-moz-range-thumb {
   .sp-head h2 { font-size: 19px; letter-spacing: -.4px; }
   .sp-head p { font-size: 12px; }
 
-  /* Scrollable body with bottom padding for fixed footer */
-  .sp-body { overflow-y: visible; padding: 14px 16px 96px; }
+  /* Body scrolls naturally with the page — no fixed footer needed */
+  .sp-body { overflow-y: visible; padding: 14px 16px 20px; }
 
-  /* Fixed bottom nav per active step */
+  /* Nav buttons: static, scroll with content (no overlap with cards) */
   .sp.active .sp-foot {
-    position: fixed; bottom: 0; left: 0; right: 0; z-index: 200;
+    position: static;
     background: var(--panel);
     border-top: 1px solid var(--border2);
-    padding: 12px 16px;
-    padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px));
-    box-shadow: 0 -16px 40px rgba(0,0,0,.55);
+    padding: 14px 16px;
+    padding-bottom: calc(20px + env(safe-area-inset-bottom, 0px));
+    box-shadow: none;
     gap: 10px;
   }
   .btn-next { padding: 16px; font-size: 15px; border-radius: 10px; min-height: 52px; }
