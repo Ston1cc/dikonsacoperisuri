@@ -425,7 +425,7 @@ window.addEventListener('load', function () {
   scene.add(ground);
 
   // ── Orbit ──────────────────────────────────────────────
-  var orb = { theta: -0.5, phi: 1.18, radius: 24, tx:0, ty:2.2, tz:0 };
+  var orb = { theta: -0.5, phi: 0.95, radius: 26, tx:0, ty:2.0, tz:0 };
   function orbCam() {
     camera.position.set(
       orb.tx + orb.radius * Math.sin(orb.phi) * Math.sin(orb.theta),
