@@ -391,15 +391,15 @@ window.addEventListener('load', function () {
   renderer.shadowMap.enabled = true;
   renderer.shadowMap.type = THREE.PCFSoftShadowMap;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
-  renderer.toneMappingExposure = 1.05;
+  renderer.toneMappingExposure = 1.25;
 
   function sz() { return { w: wrap.clientWidth, h: wrap.clientHeight }; }
   var s0 = sz();
   renderer.setSize(s0.w, s0.h);
 
   var scene = new THREE.Scene();
-  scene.background = new THREE.Color(0xeee6d8);
-  scene.fog = new THREE.Fog(0xeee6d8, 40, 90);
+  scene.background = new THREE.Color(0xf0ebe0);
+  scene.fog = new THREE.Fog(0xf0ebe0, 40, 90);
 
   var camera = new THREE.PerspectiveCamera(40, s0.w / s0.h, 0.1, 200);
 
@@ -425,7 +425,7 @@ window.addEventListener('load', function () {
   scene.add(ground);
 
   // ── Orbit ──────────────────────────────────────────────
-  var orb = { theta: -0.7, phi: 1.05, radius: 24, tx:0, ty:2.5, tz:0 };
+  var orb = { theta: -0.45, phi: 1.0, radius: 20, tx:0, ty:2.5, tz:0 };
   function orbCam() {
     camera.position.set(
       orb.tx + orb.radius * Math.sin(orb.phi) * Math.sin(orb.theta),
@@ -556,7 +556,7 @@ window.addEventListener('load', function () {
   }
 
   function wallMat() {
-    return new THREE.MeshStandardMaterial({ color:0xf0ece4, roughness:0.7, metalness:0 });
+    return new THREE.MeshStandardMaterial({ color:0xf4f0ea, roughness:0.6, metalness:0 });
   }
 
   // ── House ──────────────────────────────────────────────
@@ -628,7 +628,7 @@ window.addEventListener('load', function () {
     });
   }
 
-  function ridgeH(W) { return W * 0.28; }
+  function ridgeH(W) { return W * 0.35; }  // ~35° pitch
 
   function buildHouse() {
     if (houseGroup) { disposeGroup(houseGroup); scene.remove(houseGroup); }
