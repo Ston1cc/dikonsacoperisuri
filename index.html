@@ -353,12 +353,12 @@ var MAT_CATALOG = {
   tigla: {
     label: 'Țiglă Modulară',
     colors: [
-      { id:'tigla-gri',      name:'Gri Ardeziat',   h:0,   s:0,  lo:20, hi:38 },
-      { id:'tigla-rosu',     name:'Roșu Cărămiziu', h:10,  s:55, lo:22, hi:40 },
-      { id:'tigla-maro',     name:'Maro Natural',   h:25,  s:40, lo:18, hi:35 },
-      { id:'tigla-negru',    name:'Negru Mat',      h:0,   s:0,  lo:8,  hi:18 },
-      { id:'tigla-verde',    name:'Verde Închis',   h:140, s:35, lo:16, hi:30 },
-      { id:'tigla-teracota', name:'Teracotă',       h:18,  s:65, lo:28, hi:48 },
+      { id:'tigla-gri',      name:'Gri Ardeziat',   h:0,   s:0,  lo:20, hi:38, tint:0x909090 },
+      { id:'tigla-rosu',     name:'Roșu Cărămiziu', h:10,  s:55, lo:22, hi:40, tint:0xb04428 },
+      { id:'tigla-maro',     name:'Maro Natural',   h:25,  s:40, lo:18, hi:35, tint:0x7c5030 },
+      { id:'tigla-negru',    name:'Negru Mat',       h:0,   s:0,  lo:8,  hi:18, tint:0x343434 },
+      { id:'tigla-verde',    name:'Verde Închis',   h:140, s:35, lo:16, hi:30, tint:0x3c5c3c },
+      { id:'tigla-teracota', name:'Teracotă',       h:18,  s:65, lo:28, hi:48, tint:0xbc5230 },
     ]
   },
   sindrila: {
@@ -487,10 +487,31 @@ window.addEventListener('load', function () {
 
   // ── Texture cache ──────────────────────────────────────
   var TEXS = {};
+  // Canvas fallback textures for tigla (used until PBR maps load)
   MAT_CATALOG.tigla.colors.forEach(function(cs) { TEXS[cs.id] = makeTileTex(cs); });
   var TL = new THREE.TextureLoader();
   window._TEXS = TEXS;
   window._TL   = TL;
+
+  // ── PBR maps for Țiglă Modulară (ambientcg RoofingTiles013A) ──
+  var TIGLA_MAPS = { color: null, normal: null, rough: null };
+  window._TIGLA_MAPS = TIGLA_MAPS;
+  var _tiglaLoaded = 0;
+  function _onTiglaMap() {
+    _tiglaLoaded++;
+    if (_tiglaLoaded === 3 && S.matType === 'tigla' && window._rebuild) window._rebuild();
+  }
+  var _tl2 = new THREE.TextureLoader();
+  [['color','RoofingTiles013A_1K-JPG_Color.jpg'],
+   ['normal','RoofingTiles013A_1K-JPG_NormalGL.jpg'],
+   ['rough', 'RoofingTiles013A_1K-JPG_Roughness.jpg']
+  ].forEach(function(pair) {
+    _tl2.load('tex/tigla/'+pair[1], function(t) {
+      t.wrapS = t.wrapT = THREE.RepeatWrapping;
+      TIGLA_MAPS[pair[0]] = t;
+      _onTiglaMap();
+    });
+  });
 
   // ── Geometry builder ───────────────────────────────────
   function GeoBuilder() { this.p=[]; this.n=[]; this.u=[]; this.i=[]; }
@@ -550,13 +571,29 @@ window.addEventListener('load', function () {
 
   // ── Materials ──────────────────────────────────────────
   function roofMat() {
+    if (S.matType === 'tigla') {
+      var col = findColor('tigla', S.matColor);
+      var tint = col ? col.tint : 0x888888;
+      var hasPBR = TIGLA_MAPS.color && TIGLA_MAPS.normal && TIGLA_MAPS.rough;
+      return new THREE.MeshStandardMaterial({
+        map:          hasPBR ? TIGLA_MAPS.color  : (TEXS[S.matColor] || null),
+        normalMap:    hasPBR ? TIGLA_MAPS.normal : null,
+        normalScale:  new THREE.Vector2(1.5, 1.5),
+        roughnessMap: hasPBR ? TIGLA_MAPS.rough  : null,
+        color:        hasPBR ? tint : 0xffffff,
+        roughness:    0.82,
+        metalness:    0.0,
+        side:         THREE.DoubleSide
+      });
+    }
+    // sindrila
     var tex = TEXS[S.matColor] || null;
     return new THREE.MeshStandardMaterial({
-      map: tex,
-      color: tex ? 0xffffff : 0x4a3828,
-      roughness: S.matType==='tigla' ? 0.78 : 0.48,
-      metalness: S.matType==='tigla' ? 0.0  : 0.18,
-      side: THREE.DoubleSide
+      map:       tex,
+      color:     tex ? 0xffffff : 0x1a1a1a,
+      roughness: 0.48,
+      metalness: 0.18,
+      side:      THREE.DoubleSide
     });
   }
 
