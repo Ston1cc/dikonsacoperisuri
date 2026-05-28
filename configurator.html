@@ -133,6 +133,25 @@ button { font-family: var(--body); cursor: pointer; border: none; }
 }
 .vp-area { font-size: 11px; color: var(--mid); margin-top: 3px; }
 
+/* Mobile price strip — shown below viewer on small screens */
+#mob-price-strip {
+  display: none;
+  align-items: center; justify-content: space-between;
+  padding: 10px 16px;
+  background: var(--panel2);
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.mps-left { display: flex; align-items: center; gap: 7px; }
+.mps-dot {
+  width: 7px; height: 7px; border-radius: 50%; background: var(--orange);
+  animation: pulse 2s infinite; flex-shrink: 0;
+}
+.mps-label { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 1.5px; color: var(--mid); }
+.mps-right { display: flex; align-items: baseline; gap: 8px; }
+.mps-price { font-family: var(--disp); font-size: 17px; font-weight: 800; color: var(--orange); }
+.mps-area  { font-size: 11px; color: var(--dim); }
+
 /* Drag hint */
 #v-hint {
   top: 20px; left: 50%; transform: translateX(-50%);
@@ -441,14 +460,9 @@ input[type=range]::-moz-range-thumb {
     height: 44vh; min-height: 220px; max-height: 360px;
   }
 
-  /* Price badge repositioned */
-  #v-price {
-    bottom: 10px; left: 10px;
-    padding: 10px 14px; min-width: 0;
-    border-radius: 10px;
-  }
-  .vp-price { font-size: 17px; }
-  .vp-area { font-size: 10px; }
+  /* Hide floating badge, show dedicated strip below viewer instead */
+  #v-price { display: none; }
+  #mob-price-strip { display: flex; }
   #v-hint { display: none; }
   #v-shape-label { top: 10px; right: 10px; font-size: 10px; padding: 4px 10px; }
 
@@ -608,6 +622,18 @@ input[type=range]::-moz-range-thumb {
 
     <!-- Floating: shape label -->
     <div class="v-overlay" id="v-shape-label" style="display:none">2 Pante</div>
+  </div>
+
+  <!-- Mobile price strip (between viewer and panel, no overlap) -->
+  <div id="mob-price-strip">
+    <div class="mps-left">
+      <div class="mps-dot"></div>
+      <span class="mps-label">Estimare orientativă</span>
+    </div>
+    <div class="mps-right">
+      <span class="mps-price" id="mob-price-val">—</span>
+      <span class="mps-area" id="mob-price-area"></span>
+    </div>
   </div>
 
   <!-- CONFIG PANEL -->
@@ -1169,9 +1195,12 @@ window.addEventListener('load', function () {
     var euroLo=Math.round(area*59), euroHi=Math.round(area*59*1.35);
     var euroStr='~'+euroLo.toLocaleString('ro-RO')+' – '+euroHi.toLocaleString('ro-RO')+' €';
     var euroSingle='~'+euroLo.toLocaleString('ro-RO')+' €';
-    // Floating badge
+    // Floating badge (desktop)
     document.getElementById('estimatePrice').textContent=euroStr;
     document.getElementById('estimateArea').textContent=areaRound+' m²';
+    // Mobile strip (below viewer)
+    var ms=document.getElementById('mob-price-val'); if(ms) ms.textContent=euroStr;
+    var ma=document.getElementById('mob-price-area'); if(ma) ma.textContent=areaRound+' m²';
     // Step 5 banner
     var big=document.getElementById('estimatePriceBig'); if(big) big.textContent=euroStr;
     var ab=document.getElementById('estimateAreaBig'); if(ab) ab.textContent=areaRound+' m²';
